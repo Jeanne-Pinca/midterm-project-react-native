@@ -1,11 +1,11 @@
 import {
-  createContext,
-  createElement,
-  ReactNode,
-  useContext,
-  useEffect,
-  useMemo,
-  useState,
+    createContext,
+    createElement,
+    ReactNode,
+    useContext,
+    useEffect,
+    useMemo,
+    useState,
 } from "react";
 import { Linking } from "react-native";
 import uuid from "react-native-uuid";
@@ -59,15 +59,28 @@ export type Job = {
   locations: string[];
 };
 
+export type JobApplicationDetails = {
+  name: string;
+  email: string;
+  contactNumber: string;
+  whyHire: string;
+  submittedAt: string;
+};
+
 type JobContextValue = {
   jobs: Job[];
   savedJobIds: string[];
   submittedJobIds: string[];
+  applicationDetailsByJobId: Record<string, JobApplicationDetails>;
   isLoading: boolean;
   error: string | null;
   saveJob: (jobId: string) => void;
   unsaveJob: (jobId: string) => void;
   markJobAsSubmitted: (jobId: string) => void;
+  submitJobApplication: (
+    jobId: string,
+    details: Omit<JobApplicationDetails, "submittedAt">,
+  ) => void;
   applyToJob: (jobId: string) => Promise<void>;
   refreshJobs: () => Promise<void>;
 };
@@ -147,12 +160,24 @@ function stripHtml(input?: string): string {
     return "Not specified";
   }
 
-  return input
-    .replace(/<[^>]*>/g, " ")
+  const normalizedHtml = input
     .replace(/\\u003C/g, "<")
-    .replace(/\\u003E/g, ">")
-    .replace(/\s+/g, " ")
+    .replace(/\\u003E/g, ">");
+
+  const structuredText = normalizedHtml
+    .replace(/<br\s*\/?>/gi, "\n")
+    .replace(/<li[^>]*>/gi, "\n• ")
+    .replace(/<\/(li|p|div|h[1-6])>/gi, "\n")
+    .replace(/<[^>]*>/g, " ")
+    .replace(/&nbsp;/gi, " ")
+    .replace(/[ \t\f\v]+/g, " ")
+    .replace(/\n{3,}/g, "\n\n")
+    .split("\n")
+    .map((line) => line.trim())
+    .join("\n")
     .trim();
+
+  return structuredText || "Not specified";
 }
 
 function normalizeIdPart(value?: string | number | null): string {
@@ -278,6 +303,9 @@ export function JobProvider({ children }: { children: ReactNode }) {
   const [jobs, setJobs] = useState<Job[]>([]);
   const [savedJobIds, setSavedJobIds] = useState<string[]>([]);
   const [submittedJobIds, setSubmittedJobIds] = useState<string[]>([]);
+  const [applicationDetailsByJobId, setApplicationDetailsByJobId] = useState<
+    Record<string, JobApplicationDetails>
+  >({});
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -325,6 +353,21 @@ export function JobProvider({ children }: { children: ReactNode }) {
     );
   };
 
+  const submitJobApplication = (
+    jobId: string,
+    details: Omit<JobApplicationDetails, "submittedAt">,
+  ) => {
+    setApplicationDetailsByJobId((current) => ({
+      ...current,
+      [jobId]: {
+        ...details,
+        submittedAt: new Date().toLocaleString(),
+      },
+    }));
+
+    markJobAsSubmitted(jobId);
+  };
+
   const applyToJob = async (jobId: string) => {
     const selectedJob = jobs.find((job) => job.id === jobId);
 
@@ -340,15 +383,24 @@ export function JobProvider({ children }: { children: ReactNode }) {
       jobs,
       savedJobIds,
       submittedJobIds,
+      applicationDetailsByJobId,
       isLoading,
       error,
       saveJob,
       unsaveJob,
       markJobAsSubmitted,
+      submitJobApplication,
       applyToJob,
       refreshJobs,
     }),
-    [jobs, savedJobIds, submittedJobIds, isLoading, error],
+    [
+      jobs,
+      savedJobIds,
+      submittedJobIds,
+      applicationDetailsByJobId,
+      isLoading,
+      error,
+    ],
   );
 
   return createElement(JobContext.Provider, { value }, children);

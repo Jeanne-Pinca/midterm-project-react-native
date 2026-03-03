@@ -1,11 +1,9 @@
-import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { BottomTabScreenProps } from "@react-navigation/bottom-tabs";
 import { CompositeScreenProps } from "@react-navigation/native";
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   ActivityIndicator,
-  Image,
   ListRenderItemInfo,
   Text,
   View,
@@ -13,6 +11,7 @@ import {
 
 import AppButton from "../../components/AppButton";
 import BookmarkButton from "../../components/BookmarkButton";
+import JobInfoCard from "../../components/JobInfoCard";
 import JobSaveStatusPrompt from "../../components/JobSaveStatusPrompt";
 import RefreshableList from "../../components/RefreshableList";
 import SearchBar from "../../components/SearchBar";
@@ -52,7 +51,7 @@ export default function FinderScreen({ navigation }: FinderScreenProps) {
     };
   }, []);
 
-  const showStatusPrompt = (message: string) => {
+  const showStatusPrompt = useCallback((message: string) => {
     setSavePromptMessage(message);
     setShowSavePrompt(true);
 
@@ -64,22 +63,38 @@ export default function FinderScreen({ navigation }: FinderScreenProps) {
       setShowSavePrompt(false);
       promptTimerRef.current = null;
     }, 1800);
-  };
+  }, []);
 
-  const executeSave = (jobId: string) => {
-    saveJob(jobId);
-    showStatusPrompt("Job Saved Successfully!");
-  };
+  const executeSave = useCallback(
+    (jobId: string) => {
+      saveJob(jobId);
+      showStatusPrompt("Job Saved Successfully!");
+    },
+    [saveJob, showStatusPrompt],
+  );
 
-  const handleSaveJob = (jobId: string, isSaved: boolean) => {
-    if (isSaved) {
-      unsaveJob(jobId);
-      showStatusPrompt("Job removed from saved jobs");
-      return;
-    }
+  const handleSaveJob = useCallback(
+    (jobId: string, isSaved: boolean) => {
+      if (isSaved) {
+        unsaveJob(jobId);
+        showStatusPrompt("Job removed from saved jobs");
+        return;
+      }
 
-    executeSave(jobId);
-  };
+      executeSave(jobId);
+    },
+    [executeSave, showStatusPrompt, unsaveJob],
+  );
+
+  const handleOpenDetails = useCallback(
+    (jobId: string) => {
+      navigation.navigate("JobDetails", {
+        jobId,
+        source: "finder",
+      });
+    },
+    [navigation],
+  );
 
   const filteredJobs = useMemo(() => {
     const normalizedQuery = query.trim().toLowerCase();
@@ -110,101 +125,34 @@ export default function FinderScreen({ navigation }: FinderScreenProps) {
     });
   }, [jobs, query]);
 
-  const renderJob = ({ item }: ListRenderItemInfo<Job>) => {
-    const salaryText =
-      item.minSalary !== "Not specified" && item.maxSalary !== "Not specified"
-        ? `${item.currency} ${item.minSalary} - ${item.maxSalary}`
-        : item.salary;
-    const isSaved = savedJobIds.includes(item.id);
-
-    return (
-      <View style={finderScreenStyles.card}>
-        <View style={finderScreenStyles.jobHeaderRow}>
-          <Text style={finderScreenStyles.jobTitleWithLogo}>{item.title}</Text>
-          {item.companyLogo ? (
-            <Image
-              source={{ uri: item.companyLogo }}
-              style={finderScreenStyles.cardLogo}
-              resizeMode="contain"
+  const renderJob = useCallback(
+    ({ item }: ListRenderItemInfo<Job>) => (
+      <JobInfoCard
+        job={item}
+        footer={
+          <View style={finderScreenStyles.buttonRow}>
+            <BookmarkButton
+              isSaved={savedJobIds.includes(item.id)}
+              onPress={() =>
+                handleSaveJob(item.id, savedJobIds.includes(item.id))
+              }
             />
-          ) : null}
-        </View>
-
-        <Text style={finderScreenStyles.companyText}>{item.company}</Text>
-        <Text style={finderScreenStyles.categoryText}>{item.mainCategory}</Text>
-        <Text style={finderScreenStyles.jobTypeText}>
-          {item.jobType}, {item.workModel}
-        </Text>
-
-        <View style={finderScreenStyles.locationRow}>
-          <View style={finderScreenStyles.locationLeft}>
-            <MaterialCommunityIcons name="cash" size={16} color="#6b7280" />
-            <Text style={finderScreenStyles.iconText}>{salaryText}</Text>
-          </View>
-          <View style={finderScreenStyles.publishedRight}>
-            <MaterialCommunityIcons
-              name="clock-outline"
-              size={16}
-              color="#6b7280"
+            <AppButton
+              label="Details"
+              onPress={() => handleOpenDetails(item.id)}
             />
-            <Text style={finderScreenStyles.publishedText}>
-              {item.publishedDate}
-            </Text>
           </View>
-        </View>
+        }
+      />
+    ),
+    [handleOpenDetails, handleSaveJob, savedJobIds],
+  );
 
-        <View style={finderScreenStyles.locationRow}>
-          <View style={finderScreenStyles.locationLeft}>
-            <MaterialCommunityIcons
-              name="map-marker"
-              size={16}
-              color="#6b7280"
-            />
-            <Text style={finderScreenStyles.iconText}>
-              {item.locations.length > 0
-                ? item.locations.join(", ")
-                : "Not specified"}
-            </Text>
-          </View>
-          <View style={finderScreenStyles.publishedRight}>
-            <MaterialCommunityIcons
-              name="calendar-clock"
-              size={16}
-              color="#6b7280"
-            />
-            <Text style={finderScreenStyles.publishedText}>
-              {item.expiryDate}
-            </Text>
-          </View>
-        </View>
+  const keyExtractor = useCallback((item: Job) => item.id, []);
 
-        <View style={finderScreenStyles.iconRow}>
-          <MaterialCommunityIcons
-            name="tag"
-            size={16}
-            color="#6b7280"
-            style={finderScreenStyles.tagIcon}
-          />
-          <Text style={finderScreenStyles.iconText}>
-            {item.tags.length > 0 ? item.tags.join(", ") : "Not specified"}
-          </Text>
-        </View>
-
-        <View style={finderScreenStyles.buttonRow}>
-          <BookmarkButton
-            isSaved={isSaved}
-            onPress={() => handleSaveJob(item.id, isSaved)}
-          />
-          <AppButton
-            label="Details"
-            onPress={() =>
-              navigation.navigate("JobDetails", { jobId: item.id })
-            }
-          />
-        </View>
-      </View>
-    );
-  };
+  const handleRefresh = useCallback(() => {
+    void refreshJobs();
+  }, [refreshJobs]);
 
   return (
     <View style={finderScreenStyles.container}>
@@ -224,12 +172,16 @@ export default function FinderScreen({ navigation }: FinderScreenProps) {
       ) : (
         <RefreshableList
           data={filteredJobs}
-          keyExtractor={(item) => item.id}
+          keyExtractor={keyExtractor}
           renderItem={renderJob}
           showsVerticalScrollIndicator={false}
           showsHorizontalScrollIndicator={false}
           refreshing={isLoading}
-          onRefresh={() => void refreshJobs()}
+          onRefresh={handleRefresh}
+          initialNumToRender={8}
+          maxToRenderPerBatch={8}
+          windowSize={7}
+          removeClippedSubviews
           contentContainerStyle={finderScreenStyles.listContainer}
           ListEmptyComponent={
             <Text style={finderScreenStyles.emptyText}>No jobs found.</Text>

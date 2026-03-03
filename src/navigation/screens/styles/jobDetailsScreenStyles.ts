@@ -40,13 +40,69 @@ export const jobDetailsScreenStyles = StyleSheet.create({
   descriptionTitle: {
     fontSize: 15,
     fontWeight: "700",
-    marginTop: 4,
-    marginBottom: 4,
+    marginBottom: 6,
+  },
+  descriptionBox: {
+    borderWidth: 1,
+    borderColor: "#e5e7eb",
+    borderRadius: 12,
+    padding: 12,
+    marginTop: 8,
+    gap: 6,
+  },
+  descriptionSectionTitle: {
+    fontSize: 18,
+    fontWeight: "700",
+    color: "#2e1065",
+  },
+  descriptionSectionRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginTop: 6,
+    marginBottom: 6,
+  },
+  descriptionSectionRowSpaced: {
+    marginTop: 20,
+  },
+  descriptionSectionLine: {
+    flex: 1,
+    height: 1,
+    backgroundColor: "#d1d5db",
+  },
+  descriptionSectionContent: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+    paddingHorizontal: 10,
+  },
+  descriptionText: {
+    fontSize: 14,
+    color: "#374151",
+    lineHeight: 21,
+    flex: 1,
+  },
+  descriptionBulletRow: {
+    flexDirection: "row",
+    alignItems: "flex-start",
+    gap: 8,
+    paddingLeft: 15,
+    paddingRight: 15,
+  },
+  descriptionBulletDot: {
+    fontSize: 16,
+    color: "#d1d5db",
+    lineHeight: 21,
   },
   buttonRow: {
     flexDirection: "row",
     gap: 8,
     marginTop: 8,
+  },
+  actionsRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+    marginTop: 18,
   },
   errorText: {
     color: "#dc2626",

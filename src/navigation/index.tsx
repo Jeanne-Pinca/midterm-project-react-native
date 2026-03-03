@@ -13,11 +13,17 @@ import SavedJobsScreen from "./screens/SavedJobsScreen";
 
 const ApplicationFormScreen =
   require("./screens/ApplicationFormScreen").default;
+const ApplicationDetailsScreen =
+  require("./screens/ApplicationDetailsScreen").default;
 
 export type RootStackParamList = {
   MainTabs: NavigatorScreenParams<RootTabParamList> | undefined;
-  JobDetails: { jobId: string };
+  JobDetails: {
+    jobId: string;
+    source?: "finder" | "savedJobs" | "appliedJobs";
+  };
   ApplicationForm: { jobId: string; source: "jobDetails" | "savedJobs" };
+  ApplicationDetails: { jobId: string };
 };
 
 export type RootTabParamList = {
@@ -83,6 +89,10 @@ export default function Navigation() {
         <Stack.Screen
           name="ApplicationForm"
           component={ApplicationFormScreen}
+        />
+        <Stack.Screen
+          name="ApplicationDetails"
+          component={ApplicationDetailsScreen}
         />
       </Stack.Navigator>
     </NavigationContainer>

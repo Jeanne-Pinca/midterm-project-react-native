@@ -29,78 +29,82 @@ export const finderScreenStyles = StyleSheet.create({
     borderRadius: 12,
     padding: 12,
     marginBottom: 12,
+    overflow: "hidden",
   },
   jobHeaderRow: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
-    marginBottom: 4,
+    marginBottom: 8,
     gap: 8,
   },
-  jobTitleWithLogo: {
+  jobHeaderInfoContainer: {
     flex: 1,
+    gap: 2,
+    minWidth: 0,
+  },
+  jobTitleWithLogo: {
     fontSize: 18,
     fontWeight: "700",
+    flexShrink: 1,
   },
   cardLogo: {
     width: 44,
     height: 44,
     borderRadius: 8,
     flexShrink: 0,
+    overflow: "hidden",
     backgroundColor: "#f3f4f6",
   },
   companyText: {
     fontSize: 14,
     fontWeight: "600",
     color: "#374151",
-    marginBottom: 2,
+    flexShrink: 1,
   },
-  categoryText: {
-    fontSize: 13,
-    color: "#6b7280",
-    marginBottom: 2,
-  },
-  jobTypeText: {
-    fontSize: 13,
-    color: "#6b7280",
+  detailsSection: {
+    gap: 8,
     marginBottom: 8,
   },
-  iconRow: {
+  detailsColumns: {
+    flexDirection: "row",
+    gap: 8,
+  },
+  detailsColumnBox: {
+    flex: 1,
+    minWidth: 0,
+    borderWidth: 1,
+    borderColor: "#e5e7eb",
+    borderRadius: 12,
+    padding: 10,
+    backgroundColor: "#fff",
+  },
+  detailsColumn: {
+    gap: 8,
+  },
+  salaryCapsulesRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
+    minWidth: 0,
+  },
+  salarySeparator: {
+    color: "#6b7280",
+    fontWeight: "600",
+  },
+  tagsCapsuleRow: {
     flexDirection: "row",
     alignItems: "flex-start",
     gap: 6,
-    marginTop: 18,
-    marginBottom: 4,
+  },
+  tagsCapsulesWrap: {
+    flex: 1,
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: 6,
   },
   tagIcon: {
-    marginTop: 2.5,
-  },
-  locationRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    marginBottom: 4,
-    gap: 8,
-  },
-  locationLeft: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 6,
-    flex: 1,
-  },
-  publishedRight: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 4,
-  },
-  publishedText: {
-    fontSize: 12,
-    color: "#6b7280",
-  },
-  iconText: {
-    fontSize: 13,
-    color: "#374151",
-    flex: 1,
+    marginTop: 6,
   },
   jobMeta: {
     fontSize: 14,
