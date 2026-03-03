@@ -1,11 +1,11 @@
-import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { BottomTabScreenProps } from "@react-navigation/bottom-tabs";
 import { CompositeScreenProps } from "@react-navigation/native";
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { useMemo, useState } from "react";
-import { Image, Text, View } from "react-native";
+import { Text, View } from "react-native";
 
 import AppButton from "../../components/AppButton";
+import JobInfoCard from "../../components/JobInfoCard";
 import RefreshableList from "../../components/RefreshableList";
 import SearchBar from "../../components/SearchBar";
 import { Job, useJobs } from "../../context/JobContext";
@@ -56,91 +56,29 @@ export default function AppliedJobsScreen({
   }, [jobs, submittedJobIds, query]);
 
   const renderAppliedJob = ({ item }: { item: Job }) => (
-    <View style={appliedJobsScreenStyles.card}>
-      <View style={appliedJobsScreenStyles.jobHeaderRow}>
-        <Text style={appliedJobsScreenStyles.jobTitleWithLogo}>
-          {item.title}
-        </Text>
-        {item.companyLogo ? (
-          <Image
-            source={{ uri: item.companyLogo }}
-            style={appliedJobsScreenStyles.cardLogo}
-            resizeMode="contain"
+    <JobInfoCard
+      job={item}
+      footer={
+        <View style={appliedJobsScreenStyles.buttonRow}>
+          <AppButton
+            label="Details"
+            onPress={() =>
+              navigation.navigate("JobDetails", {
+                jobId: item.id,
+                source: "appliedJobs",
+              })
+            }
           />
-        ) : null}
-      </View>
-
-      <Text style={appliedJobsScreenStyles.companyText}>{item.company}</Text>
-      <Text style={appliedJobsScreenStyles.categoryText}>
-        {item.mainCategory}
-      </Text>
-      <Text style={appliedJobsScreenStyles.jobTypeText}>
-        {item.jobType}, {item.workModel}
-      </Text>
-
-      <View style={appliedJobsScreenStyles.locationRow}>
-        <View style={appliedJobsScreenStyles.locationLeft}>
-          <MaterialCommunityIcons name="cash" size={16} color="#6b7280" />
-          <Text style={appliedJobsScreenStyles.iconText}>{item.salary}</Text>
-        </View>
-        <View style={appliedJobsScreenStyles.publishedRight}>
-          <MaterialCommunityIcons
-            name="clock-outline"
-            size={16}
-            color="#6b7280"
+          <AppButton
+            label="View Application"
+            variant="muted"
+            onPress={() =>
+              navigation.navigate("ApplicationDetails", { jobId: item.id })
+            }
           />
-          <Text style={appliedJobsScreenStyles.publishedText}>
-            {item.publishedDate}
-          </Text>
         </View>
-      </View>
-
-      <View style={appliedJobsScreenStyles.locationRow}>
-        <View style={appliedJobsScreenStyles.locationLeft}>
-          <MaterialCommunityIcons name="map-marker" size={16} color="#6b7280" />
-          <Text style={appliedJobsScreenStyles.iconText}>
-            {item.locations.length > 0
-              ? item.locations.join(", ")
-              : "Not specified"}
-          </Text>
-        </View>
-        <View style={appliedJobsScreenStyles.publishedRight}>
-          <MaterialCommunityIcons
-            name="calendar-clock"
-            size={16}
-            color="#6b7280"
-          />
-          <Text style={appliedJobsScreenStyles.publishedText}>
-            {item.expiryDate}
-          </Text>
-        </View>
-      </View>
-
-      <View style={appliedJobsScreenStyles.iconRow}>
-        <MaterialCommunityIcons
-          name="tag"
-          size={16}
-          color="#6b7280"
-          style={appliedJobsScreenStyles.tagIcon}
-        />
-        <Text style={appliedJobsScreenStyles.iconText}>
-          {item.tags.length > 0 ? item.tags.join(", ") : "Not specified"}
-        </Text>
-      </View>
-
-      <View style={appliedJobsScreenStyles.buttonRow}>
-        <AppButton
-          label="Details"
-          onPress={() => navigation.navigate("JobDetails", { jobId: item.id })}
-        />
-        <AppButton
-          label="Application Submitted"
-          variant="muted"
-          disabled
-          onPress={() => {}}
-        />
-      </View>
-    </View>
+      }
+    />
   );
 
   return (

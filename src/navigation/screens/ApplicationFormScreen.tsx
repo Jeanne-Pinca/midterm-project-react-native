@@ -3,6 +3,7 @@ import { useMemo, useState } from "react";
 import { Alert, ScrollView, Text, TextInput, View } from "react-native";
 
 import AppButton from "../../components/AppButton";
+import JobInfoCard from "../../components/JobInfoCard";
 import { useJobs } from "../../context/JobContext";
 import { RootStackParamList } from "../index";
 import { applicationFormScreenStyles } from "./styles/applicationFormScreenStyles";
@@ -16,7 +17,7 @@ export default function ApplicationFormScreen({
   navigation,
   route,
 }: ApplicationFormScreenProps) {
-  const { jobs, markJobAsSubmitted } = useJobs();
+  const { jobs, submitJobApplication } = useJobs();
   const [name, setName] = useState<string>("");
   const [email, setEmail] = useState<string>("");
   const [contactNumber, setContactNumber] = useState<string>("");
@@ -46,8 +47,13 @@ export default function ApplicationFormScreen({
       return;
     }
 
+    submitJobApplication(route.params.jobId, {
+      name: name.trim(),
+      email: email.trim(),
+      contactNumber: contactNumber.trim(),
+      whyHire: whyHire.trim(),
+    });
     clearForm();
-    markJobAsSubmitted(route.params.jobId);
 
     Alert.alert(
       "Application Submitted",
@@ -66,13 +72,26 @@ export default function ApplicationFormScreen({
       style={applicationFormScreenStyles.container}
       contentContainerStyle={applicationFormScreenStyles.contentContainer}
       showsVerticalScrollIndicator={false}
+      stickyHeaderIndices={[0]}
     >
-      <Text style={applicationFormScreenStyles.title}>Application Form</Text>
-      <Text style={applicationFormScreenStyles.subtitle}>
-        {selectedJob
-          ? `Applying for ${selectedJob.title}`
-          : "Complete your application details."}
-      </Text>
+      <View style={applicationFormScreenStyles.stickyHeader}>
+        <View style={applicationFormScreenStyles.stickyHeaderRow}>
+          <Text style={applicationFormScreenStyles.stickyHeaderTitle}>
+            Application Form
+          </Text>
+          <View style={applicationFormScreenStyles.statusCapsule}>
+            <Text style={applicationFormScreenStyles.statusCapsuleText}>
+              Currently Applying
+            </Text>
+          </View>
+        </View>
+      </View>
+
+      {selectedJob ? (
+        <>
+          <JobInfoCard job={selectedJob} />
+        </>
+      ) : null}
 
       <Text style={applicationFormScreenStyles.label}>Name</Text>
       <TextInput
