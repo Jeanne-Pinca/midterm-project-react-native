@@ -1,25 +1,29 @@
 import { MaterialCommunityIcons } from "@expo/vector-icons";
+import { BottomTabScreenProps } from "@react-navigation/bottom-tabs";
+import { CompositeScreenProps } from "@react-navigation/native";
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { useEffect, useMemo, useRef, useState } from "react";
 import {
   ActivityIndicator,
-  Alert,
-  FlatList,
   Image,
   ListRenderItemInfo,
   Text,
-  TextInput,
   View,
 } from "react-native";
 
 import AppButton from "../../components/AppButton";
 import BookmarkButton from "../../components/BookmarkButton";
 import JobSaveStatusPrompt from "../../components/JobSaveStatusPrompt";
+import RefreshableList from "../../components/RefreshableList";
+import SearchBar from "../../components/SearchBar";
 import { Job, useJobs } from "../../context/JobContext";
-import { RootStackParamList } from "../index";
+import { RootStackParamList, RootTabParamList } from "../index";
 import { finderScreenStyles } from "./styles/finderScreenStyles";
 
-type FinderScreenProps = NativeStackScreenProps<RootStackParamList, "Finder">;
+type FinderScreenProps = CompositeScreenProps<
+  BottomTabScreenProps<RootTabParamList, "Finder">,
+  NativeStackScreenProps<RootStackParamList>
+>;
 
 export default function FinderScreen({ navigation }: FinderScreenProps) {
   const [query, setQuery] = useState<string>("");
@@ -39,9 +43,6 @@ export default function FinderScreen({ navigation }: FinderScreenProps) {
   } = useJobs();
   const showInitialLoading = isLoading && jobs.length === 0 && !error;
   const showErrorState = Boolean(error) && jobs.length === 0;
-
-  const saveReplacementPromptMessage =
-    "you can only save one job at a time, are you sure you want to continue? this will replace the previous job you have saved.";
 
   useEffect(() => {
     return () => {
@@ -74,24 +75,6 @@ export default function FinderScreen({ navigation }: FinderScreenProps) {
     if (isSaved) {
       unsaveJob(jobId);
       showStatusPrompt("Job removed from saved jobs");
-      return;
-    }
-
-    const hasAnotherSavedJob =
-      savedJobIds.length > 0 && !savedJobIds.includes(jobId);
-
-    if (hasAnotherSavedJob) {
-      Alert.alert("Save Job", saveReplacementPromptMessage, [
-        {
-          text: "Cancel",
-          style: "cancel",
-        },
-        {
-          text: "Save Job",
-          onPress: () => executeSave(jobId),
-        },
-      ]);
-
       return;
     }
 
@@ -227,7 +210,7 @@ export default function FinderScreen({ navigation }: FinderScreenProps) {
     <View style={finderScreenStyles.container}>
       <Text style={finderScreenStyles.title}>Job Finder</Text>
 
-      <TextInput
+      <SearchBar
         value={query}
         onChangeText={setQuery}
         placeholder="Search jobs"
@@ -239,7 +222,7 @@ export default function FinderScreen({ navigation }: FinderScreenProps) {
       ) : showErrorState ? (
         <Text style={finderScreenStyles.errorText}>{error}</Text>
       ) : (
-        <FlatList
+        <RefreshableList
           data={filteredJobs}
           keyExtractor={(item) => item.id}
           renderItem={renderJob}

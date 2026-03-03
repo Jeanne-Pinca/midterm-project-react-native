@@ -5,6 +5,7 @@ type AppButtonProps = {
   onPress: () => void;
   variant?: "primary" | "muted";
   style?: ViewStyle;
+  disabled?: boolean;
 };
 
 export default function AppButton({
@@ -12,11 +13,18 @@ export default function AppButton({
   onPress,
   variant = "primary",
   style,
+  disabled = false,
 }: AppButtonProps) {
   return (
     <Pressable
-      style={[styles.button, variant === "muted" && styles.buttonMuted, style]}
+      style={[
+        styles.button,
+        variant === "muted" && styles.buttonMuted,
+        disabled && styles.buttonDisabled,
+        style,
+      ]}
       onPress={onPress}
+      disabled={disabled}
     >
       <Text style={styles.buttonText}>{label}</Text>
     </Pressable>
@@ -33,6 +41,9 @@ const styles = StyleSheet.create({
   },
   buttonMuted: {
     backgroundColor: "#4b5563",
+  },
+  buttonDisabled: {
+    opacity: 0.7,
   },
   buttonText: {
     color: "#fff",
