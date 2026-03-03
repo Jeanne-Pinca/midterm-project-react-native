@@ -1,11 +1,11 @@
 import {
-    createContext,
-    createElement,
-    ReactNode,
-    useContext,
-    useEffect,
-    useMemo,
-    useState,
+  createContext,
+  createElement,
+  ReactNode,
+  useContext,
+  useEffect,
+  useMemo,
+  useState,
 } from "react";
 import { Linking } from "react-native";
 import uuid from "react-native-uuid";
@@ -62,10 +62,12 @@ export type Job = {
 type JobContextValue = {
   jobs: Job[];
   savedJobIds: string[];
+  submittedJobIds: string[];
   isLoading: boolean;
   error: string | null;
   saveJob: (jobId: string) => void;
   unsaveJob: (jobId: string) => void;
+  markJobAsSubmitted: (jobId: string) => void;
   applyToJob: (jobId: string) => Promise<void>;
   refreshJobs: () => Promise<void>;
 };
@@ -275,6 +277,7 @@ function mapApiJobs(payload: unknown): Job[] {
 export function JobProvider({ children }: { children: ReactNode }) {
   const [jobs, setJobs] = useState<Job[]>([]);
   const [savedJobIds, setSavedJobIds] = useState<string[]>([]);
+  const [submittedJobIds, setSubmittedJobIds] = useState<string[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -305,12 +308,20 @@ export function JobProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const saveJob = (jobId: string) => {
-    setSavedJobIds([jobId]);
+    setSavedJobIds((current) =>
+      current.includes(jobId) ? current : [...current, jobId],
+    );
   };
 
   const unsaveJob = (jobId: string) => {
     setSavedJobIds((current) =>
       current.filter((savedJobId) => savedJobId !== jobId),
+    );
+  };
+
+  const markJobAsSubmitted = (jobId: string) => {
+    setSubmittedJobIds((current) =>
+      current.includes(jobId) ? current : [...current, jobId],
     );
   };
 
@@ -328,14 +339,16 @@ export function JobProvider({ children }: { children: ReactNode }) {
     () => ({
       jobs,
       savedJobIds,
+      submittedJobIds,
       isLoading,
       error,
       saveJob,
       unsaveJob,
+      markJobAsSubmitted,
       applyToJob,
       refreshJobs,
     }),
-    [jobs, savedJobIds, isLoading, error],
+    [jobs, savedJobIds, submittedJobIds, isLoading, error],
   );
 
   return createElement(JobContext.Provider, { value }, children);

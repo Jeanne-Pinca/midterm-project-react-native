@@ -1,7 +1,8 @@
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
-import { Alert, FlatList, Image, Text, View } from "react-native";
+import { FlatList, Image, Text, View } from "react-native";
 
 import AppButton from "../../components/AppButton";
+import { useJobApplicationState } from "../../components/hooks/useJobApplicationState";
 import { useJobs } from "../../context/JobContext";
 import { RootStackParamList } from "../index";
 import { jobDetailsScreenStyles } from "./styles/jobDetailsScreenStyles";
@@ -15,7 +16,8 @@ export default function JobDetailsScreen({
   navigation,
   route,
 }: JobDetailsScreenProps) {
-  const { jobs, savedJobIds, saveJob, unsaveJob, applyToJob } = useJobs();
+  const { jobs, savedJobIds, saveJob, unsaveJob } = useJobs();
+  const { getApplyButtonState } = useJobApplicationState();
   const selectedJob = jobs.find((job) => job.id === route.params.jobId);
 
   if (!selectedJob) {
@@ -31,30 +33,11 @@ export default function JobDetailsScreen({
   }
 
   const isSaved = savedJobIds.includes(selectedJob.id);
-  const saveReplacementPromptMessage =
-    "you can only save one job at a time, are you sure you want to continue? this will replace the previous job you have saved.";
+  const applyButtonState = getApplyButtonState(selectedJob.id);
 
   const handleSaveToggle = () => {
     if (isSaved) {
       unsaveJob(selectedJob.id);
-      return;
-    }
-
-    const hasAnotherSavedJob =
-      savedJobIds.length > 0 && !savedJobIds.includes(selectedJob.id);
-
-    if (hasAnotherSavedJob) {
-      Alert.alert("Save Job", saveReplacementPromptMessage, [
-        {
-          text: "Cancel",
-          style: "cancel",
-        },
-        {
-          text: "Save Job",
-          onPress: () => saveJob(selectedJob.id),
-        },
-      ]);
-
       return;
     }
 
@@ -151,8 +134,19 @@ export default function JobDetailsScreen({
             </View>
 
             <AppButton
-              label="Apply"
-              onPress={() => void applyToJob(selectedJob.id)}
+              label={applyButtonState.label}
+              variant={applyButtonState.variant}
+              disabled={applyButtonState.disabled}
+              onPress={() => {
+                if (applyButtonState.isSubmitted) {
+                  return;
+                }
+
+                navigation.navigate("ApplicationForm", {
+                  jobId: selectedJob.id,
+                  source: "jobDetails",
+                });
+              }}
             />
           </View>
         )}
