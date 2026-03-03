@@ -49,7 +49,9 @@ export default function ApplicationDetailsScreen({
       <Text style={applicationFormScreenStyles.sectionTitle}>Job Overview</Text>
       {selectedJob ? <JobInfoCard job={selectedJob} /> : null}
 
-      <Text style={applicationFormScreenStyles.sectionTitle}>Job Description</Text>
+      <Text style={applicationFormScreenStyles.sectionTitle}>
+        Job Description
+      </Text>
       <View style={applicationFormScreenStyles.descriptionBox}>
         <Text style={applicationFormScreenStyles.descriptionText}>
           {selectedJob?.description?.trim() || "Not available"}
