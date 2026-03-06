@@ -3,19 +3,21 @@ import { CompositeScreenProps } from "@react-navigation/native";
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
-  ActivityIndicator,
-  ListRenderItemInfo,
-  Text,
-  View,
+    ActivityIndicator,
+    ListRenderItemInfo,
+    Text,
+    View,
 } from "react-native";
 
 import AppButton from "../../components/AppButton";
+import AppPrompt from "../../components/AppPrompt";
 import BookmarkButton from "../../components/BookmarkButton";
 import JobInfoCard from "../../components/JobInfoCard";
-import JobSaveStatusPrompt from "../../components/JobSaveStatusPrompt";
 import RefreshableList from "../../components/RefreshableList";
 import SearchBar from "../../components/SearchBar";
+import SearchHelpContent from "../../components/SearchHelpContent";
 import { Job, useJobs } from "../../context/JobContext";
+import { filterJobsBySearchQuery } from "../../utils/jobSearch";
 import { RootStackParamList, RootTabParamList } from "../index";
 import { finderScreenStyles } from "./styles/finderScreenStyles";
 
@@ -27,6 +29,8 @@ type FinderScreenProps = CompositeScreenProps<
 export default function FinderScreen({ navigation }: FinderScreenProps) {
   const [query, setQuery] = useState<string>("");
   const [showSavePrompt, setShowSavePrompt] = useState<boolean>(false);
+  const [showSearchInfoPrompt, setShowSearchInfoPrompt] =
+    useState<boolean>(false);
   const [savePromptMessage, setSavePromptMessage] = useState<string>(
     "Job Saved Successfully!",
   );
@@ -97,32 +101,7 @@ export default function FinderScreen({ navigation }: FinderScreenProps) {
   );
 
   const filteredJobs = useMemo(() => {
-    const normalizedQuery = query.trim().toLowerCase();
-
-    if (!normalizedQuery) {
-      return jobs;
-    }
-
-    return jobs.filter((job) => {
-      const searchableText = [
-        job.title,
-        job.company,
-        job.mainCategory,
-        job.jobType,
-        job.workModel,
-        job.seniorityLevel,
-        job.salary,
-        job.currency,
-        job.locations.join(" "),
-        job.tags.join(" "),
-        job.description,
-        job.guid,
-      ]
-        .join(" ")
-        .toLowerCase();
-
-      return searchableText.includes(normalizedQuery);
-    });
+    return filterJobsBySearchQuery(jobs, query);
   }, [jobs, query]);
 
   const renderJob = useCallback(
@@ -154,6 +133,10 @@ export default function FinderScreen({ navigation }: FinderScreenProps) {
     void refreshJobs();
   }, [refreshJobs]);
 
+  const handleSearchInfoPress = useCallback(() => {
+    setShowSearchInfoPrompt(true);
+  }, []);
+
   return (
     <View style={finderScreenStyles.container}>
       <Text style={finderScreenStyles.title}>Job Finder</Text>
@@ -163,6 +146,7 @@ export default function FinderScreen({ navigation }: FinderScreenProps) {
         onChangeText={setQuery}
         placeholder="Search jobs"
         style={finderScreenStyles.searchInput}
+        onInfoPress={handleSearchInfoPress}
       />
 
       {showInitialLoading ? (
@@ -189,9 +173,25 @@ export default function FinderScreen({ navigation }: FinderScreenProps) {
         />
       )}
 
-      <JobSaveStatusPrompt
+      <AppPrompt
         visible={showSavePrompt}
         message={savePromptMessage}
+        variant="toast"
+      />
+
+      <AppPrompt
+        visible={showSearchInfoPrompt}
+        variant="dialog"
+        title="How search works"
+        message={<SearchHelpContent />}
+        onRequestClose={() => setShowSearchInfoPrompt(false)}
+        actions={[
+          {
+            label: "Okay",
+            role: "primary",
+            onPress: () => setShowSearchInfoPrompt(false),
+          },
+        ]}
       />
     </View>
   );

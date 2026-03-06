@@ -2,16 +2,18 @@ import { BottomTabScreenProps } from "@react-navigation/bottom-tabs";
 import { CompositeScreenProps } from "@react-navigation/native";
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { Alert, Text, View } from "react-native";
+import { Text, View } from "react-native";
 
 import AppButton from "../../components/AppButton";
+import AppPrompt from "../../components/AppPrompt";
 import BookmarkButton from "../../components/BookmarkButton";
 import { useJobApplicationState } from "../../components/hooks/useJobApplicationState";
 import JobInfoCard from "../../components/JobInfoCard";
-import JobSaveStatusPrompt from "../../components/JobSaveStatusPrompt";
 import RefreshableList from "../../components/RefreshableList";
 import SearchBar from "../../components/SearchBar";
+import SearchHelpContent from "../../components/SearchHelpContent";
 import { Job, useJobs } from "../../context/JobContext";
+import { filterJobsBySearchQuery } from "../../utils/jobSearch";
 import { RootStackParamList, RootTabParamList } from "../index";
 import { savedJobsScreenStyles } from "./styles/savedJobsScreenStyles";
 
@@ -23,6 +25,11 @@ type SavedJobsScreenProps = CompositeScreenProps<
 export default function SavedJobsScreen({ navigation }: SavedJobsScreenProps) {
   const [query, setQuery] = useState<string>("");
   const [showSavePrompt, setShowSavePrompt] = useState<boolean>(false);
+  const [showSearchInfoPrompt, setShowSearchInfoPrompt] =
+    useState<boolean>(false);
+  const [jobIdPendingRemoval, setJobIdPendingRemoval] = useState<string | null>(
+    null,
+  );
   const promptTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const { jobs, savedJobIds, unsaveJob, isLoading, refreshJobs } = useJobs();
   const { getApplyButtonState } = useJobApplicationState();
@@ -49,55 +56,27 @@ export default function SavedJobsScreen({ navigation }: SavedJobsScreenProps) {
   };
 
   const handleRemoveJob = (jobId: string) => {
-    Alert.alert(
-      "Remove Job",
-      "Are you sure you want to remove this job from saved jobs?",
-      [
-        {
-          text: "Cancel",
-          style: "cancel",
-        },
-        {
-          text: "Remove Job",
-          style: "destructive",
-          onPress: () => {
-            unsaveJob(jobId);
-            showStatusPrompt();
-          },
-        },
-      ],
-    );
+    setJobIdPendingRemoval(jobId);
+  };
+
+  const handleConfirmRemoveJob = () => {
+    if (!jobIdPendingRemoval) {
+      return;
+    }
+
+    unsaveJob(jobIdPendingRemoval);
+    setJobIdPendingRemoval(null);
+    showStatusPrompt();
+  };
+
+  const handleSearchInfoPress = () => {
+    setShowSearchInfoPrompt(true);
   };
 
   const savedJobs = useMemo(() => {
-    const normalizedQuery = query.trim().toLowerCase();
-
     const savedOnly = jobs.filter((job) => savedJobIds.includes(job.id));
 
-    if (!normalizedQuery) {
-      return savedOnly;
-    }
-
-    return savedOnly.filter((job) => {
-      const searchableText = [
-        job.title,
-        job.company,
-        job.mainCategory,
-        job.jobType,
-        job.workModel,
-        job.seniorityLevel,
-        job.salary,
-        job.currency,
-        job.locations.join(" "),
-        job.tags.join(" "),
-        job.description,
-        job.guid,
-      ]
-        .join(" ")
-        .toLowerCase();
-
-      return searchableText.includes(normalizedQuery);
-    });
+    return filterJobsBySearchQuery(savedOnly, query);
   }, [jobs, savedJobIds, query]);
 
   const renderSavedJob = ({ item }: { item: Job }) => {
@@ -162,6 +141,7 @@ export default function SavedJobsScreen({ navigation }: SavedJobsScreenProps) {
         onChangeText={setQuery}
         placeholder="Search saved jobs"
         style={savedJobsScreenStyles.searchInput}
+        onInfoPress={handleSearchInfoPress}
       />
 
       <RefreshableList
@@ -180,9 +160,44 @@ export default function SavedJobsScreen({ navigation }: SavedJobsScreenProps) {
         }
       />
 
-      <JobSaveStatusPrompt
+      <AppPrompt
         visible={showSavePrompt}
         message="Job has been removed."
+        variant="toast"
+      />
+
+      <AppPrompt
+        visible={showSearchInfoPrompt}
+        variant="dialog"
+        title="How search works"
+        message={<SearchHelpContent />}
+        onRequestClose={() => setShowSearchInfoPrompt(false)}
+        actions={[
+          {
+            label: "Okay",
+            role: "primary",
+            onPress: () => setShowSearchInfoPrompt(false),
+          },
+        ]}
+      />
+
+      <AppPrompt
+        visible={Boolean(jobIdPendingRemoval)}
+        variant="dialog"
+        title="Remove Job"
+        message="Are you sure you want to remove this job from saved jobs?"
+        onRequestClose={() => setJobIdPendingRemoval(null)}
+        actions={[
+          {
+            label: "Cancel",
+            onPress: () => setJobIdPendingRemoval(null),
+          },
+          {
+            label: "Remove Job",
+            role: "destructive",
+            onPress: handleConfirmRemoveJob,
+          },
+        ]}
       />
     </View>
   );

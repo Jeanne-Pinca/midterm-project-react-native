@@ -81,6 +81,7 @@ type JobContextValue = {
     jobId: string,
     details: Omit<JobApplicationDetails, "submittedAt">,
   ) => void;
+  retractJobApplication: (jobId: string) => void;
   applyToJob: (jobId: string) => Promise<void>;
   refreshJobs: () => Promise<void>;
 };
@@ -368,6 +369,21 @@ export function JobProvider({ children }: { children: ReactNode }) {
     markJobAsSubmitted(jobId);
   };
 
+  const retractJobApplication = (jobId: string) => {
+    setSubmittedJobIds((current) =>
+      current.filter((submittedJobId) => submittedJobId !== jobId),
+    );
+
+    setApplicationDetailsByJobId((current) => {
+      if (!current[jobId]) {
+        return current;
+      }
+
+      const { [jobId]: _removedDetails, ...remainingDetails } = current;
+      return remainingDetails;
+    });
+  };
+
   const applyToJob = async (jobId: string) => {
     const selectedJob = jobs.find((job) => job.id === jobId);
 
@@ -390,6 +406,7 @@ export function JobProvider({ children }: { children: ReactNode }) {
       unsaveJob,
       markJobAsSubmitted,
       submitJobApplication,
+      retractJobApplication,
       applyToJob,
       refreshJobs,
     }),

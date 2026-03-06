@@ -21,9 +21,9 @@ const styles = StyleSheet.create({
     height: 44,
     borderRadius: 999,
     borderWidth: 1,
-    borderColor: "#e5e7eb",
+    borderColor: "#e7a7f0",
     alignItems: "center",
     justifyContent: "center",
-    backgroundColor: "#fff",
+    backgroundColor: "#e7a7f0",
   },
 });
