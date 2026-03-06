@@ -1,6 +1,7 @@
 import { ReactNode } from "react";
 import { Modal, Pressable, Text, View } from "react-native";
 
+import { useTheme } from "../context/ThemeContext";
 import { appPromptStyles } from "./styles/appPromptStyles";
 
 type PromptActionRole = "default" | "primary" | "destructive";
@@ -50,6 +51,7 @@ export default function AppPrompt({
   actions = [],
   onRequestClose,
 }: AppPromptProps) {
+  const { isDarkMode, theme } = useTheme();
   const isSingleAction = actions.length === 1;
 
   if (!visible) {
@@ -59,7 +61,15 @@ export default function AppPrompt({
   if (variant === "toast") {
     return (
       <View style={appPromptStyles.toastWrapper} pointerEvents="none">
-        <View style={appPromptStyles.toastContainer}>
+        <View
+          style={[
+            appPromptStyles.toastContainer,
+            {
+              backgroundColor: isDarkMode ? "#111827" : "#111827",
+              borderColor: theme.colors.border,
+            },
+          ]}
+        >
           {typeof message === "string" ? (
             <Text style={appPromptStyles.toastText}>{message}</Text>
           ) : (
@@ -78,12 +88,34 @@ export default function AppPrompt({
       onRequestClose={onRequestClose}
     >
       <View style={appPromptStyles.dialogBackdrop}>
-        <View style={appPromptStyles.dialogContainer}>
+        <View
+          style={[
+            appPromptStyles.dialogContainer,
+            {
+              backgroundColor: theme.colors.surface,
+              borderColor: theme.colors.border,
+            },
+          ]}
+        >
           {title ? (
-            <Text style={appPromptStyles.dialogTitle}>{title}</Text>
+            <Text
+              style={[
+                appPromptStyles.dialogTitle,
+                { color: theme.colors.textPrimary },
+              ]}
+            >
+              {title}
+            </Text>
           ) : null}
           {typeof message === "string" ? (
-            <Text style={appPromptStyles.dialogMessage}>{message}</Text>
+            <Text
+              style={[
+                appPromptStyles.dialogMessage,
+                { color: theme.colors.textSecondary },
+              ]}
+            >
+              {message}
+            </Text>
           ) : (
             message
           )}
@@ -102,6 +134,10 @@ export default function AppPrompt({
                   key={`${action.label}-${index}`}
                   style={[
                     appPromptStyles.actionButton,
+                    {
+                      borderColor: theme.colors.border,
+                      backgroundColor: isDarkMode ? "#374151" : "#fff",
+                    },
                     index > 0 && appPromptStyles.actionButtonSpaced,
                     isSingleAction && appPromptStyles.actionButtonSingle,
                     action.fullWidth && appPromptStyles.actionButtonFullWidth,
@@ -110,7 +146,11 @@ export default function AppPrompt({
                   onPress={action.onPress}
                 >
                   <Text
-                    style={[appPromptStyles.actionText, roleStyles.textStyle]}
+                    style={[
+                      appPromptStyles.actionText,
+                      { color: theme.colors.textPrimary },
+                      roleStyles.textStyle,
+                    ]}
                   >
                     {action.label}
                   </Text>

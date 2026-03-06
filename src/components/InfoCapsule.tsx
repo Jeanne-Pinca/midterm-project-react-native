@@ -1,6 +1,8 @@
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 
+import { useTheme } from "../context/ThemeContext";
+
 type InfoCapsuleProps = {
   text: string;
   iconName?: keyof typeof MaterialCommunityIcons.glyphMap;
@@ -14,25 +16,56 @@ export default function InfoCapsule({
   expand = true,
   onPress,
 }: InfoCapsuleProps) {
+  const { isDarkMode, theme } = useTheme();
+
   const capsuleContent = (
-    <Text style={[styles.text, onPress && styles.linkText]}>{text}</Text>
+    <Text
+      style={[
+        styles.text,
+        { color: theme.colors.textSecondary },
+        onPress && styles.linkText,
+        onPress && { color: isDarkMode ? "#93c5fd" : "#2563eb" },
+      ]}
+    >
+      {text}
+    </Text>
   );
 
   return (
     <View style={styles.row}>
       {iconName ? (
-        <MaterialCommunityIcons name={iconName} size={16} color="#6b7280" />
+        <MaterialCommunityIcons
+          name={iconName}
+          size={16}
+          color={theme.colors.textMuted}
+        />
       ) : null}
 
       {onPress ? (
         <Pressable
-          style={[styles.capsule, expand && styles.capsuleExpand]}
+          style={[
+            styles.capsule,
+            {
+              borderColor: theme.colors.border,
+              backgroundColor: isDarkMode ? "#374151" : "#f9fafb",
+            },
+            expand && styles.capsuleExpand,
+          ]}
           onPress={onPress}
         >
           {capsuleContent}
         </Pressable>
       ) : (
-        <View style={[styles.capsule, expand && styles.capsuleExpand]}>
+        <View
+          style={[
+            styles.capsule,
+            {
+              borderColor: theme.colors.border,
+              backgroundColor: isDarkMode ? "#374151" : "#f9fafb",
+            },
+            expand && styles.capsuleExpand,
+          ]}
+        >
           {capsuleContent}
         </View>
       )}
@@ -66,7 +99,6 @@ const styles = StyleSheet.create({
     flexShrink: 1,
   },
   linkText: {
-    color: "#2563eb",
     fontWeight: "600",
   },
 });

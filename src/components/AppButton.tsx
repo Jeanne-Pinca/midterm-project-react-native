@@ -1,4 +1,7 @@
+import { LinearGradient } from "expo-linear-gradient";
 import { Pressable, StyleSheet, Text, ViewStyle } from "react-native";
+
+import { useTheme } from "../context/ThemeContext";
 
 type AppButtonProps = {
   label: string;
@@ -15,18 +18,39 @@ export default function AppButton({
   style,
   disabled = false,
 }: AppButtonProps) {
+  const { isDarkMode, theme } = useTheme();
+
   return (
     <Pressable
       style={[
         styles.button,
         variant === "muted" && styles.buttonMuted,
+        { borderColor: "#e7a7f0" },
         disabled && styles.buttonDisabled,
         style,
       ]}
       onPress={onPress}
       disabled={disabled}
     >
-      <Text style={styles.buttonText}>{label}</Text>
+      <LinearGradient
+        colors={
+          variant === "muted"
+            ? isDarkMode
+              ? ["#374151", "#4b5563", "#5b4268"]
+              : ["#ffffff", "#fdf7fe", "#f4ccf8"]
+            : isDarkMode
+              ? ["#374151", "#4b5563", "#6b3d74"]
+              : ["#ffffff", "#faeffc", "#e7a7f049"]
+        }
+        locations={[0, 0.52, 1]}
+        start={{ x: 0, y: 0 }}
+        end={{ x: 0, y: 1 }}
+        style={styles.gradientFill}
+      >
+        <Text style={[styles.buttonText, { color: theme.colors.textPrimary }]}>
+          {label}
+        </Text>
+      </LinearGradient>
     </Pressable>
   );
 }
@@ -34,16 +58,20 @@ export default function AppButton({
 const styles = StyleSheet.create({
   button: {
     flex: 1,
-    backgroundColor: "#e7a7f0",
+    borderWidth: 1,
+    borderColor: "#e7a7f0",
     borderRadius: 10,
-    paddingVertical: 10,
-    alignItems: "center",
+    overflow: "hidden",
   },
   buttonMuted: {
-    backgroundColor: "#e7a7f0",
+    borderColor: "#e7a7f0",
   },
   buttonDisabled: {
     opacity: 0.7,
+  },
+  gradientFill: {
+    paddingVertical: 10,
+    alignItems: "center",
   },
   buttonText: {
     color: "#111827",

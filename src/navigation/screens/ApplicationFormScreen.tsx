@@ -21,7 +21,9 @@ import AppPrompt from "../../components/AppPrompt";
 import BookmarkButton from "../../components/BookmarkButton";
 import CircularBackButton from "../../components/CircularBackButton";
 import JobInfoCard from "../../components/JobInfoCard";
+import ThemeModeToggle from "../../components/ThemeModeToggle";
 import { useJobs } from "../../context/JobContext";
+import { useTheme } from "../../context/ThemeContext";
 import { RootStackParamList } from "../index";
 import { applicationFormScreenStyles } from "./styles/applicationFormScreenStyles";
 
@@ -160,6 +162,7 @@ export default function ApplicationFormScreen({
   navigation,
   route,
 }: ApplicationFormScreenProps) {
+  const { isDarkMode, theme } = useTheme();
   const { jobs, submitJobApplication, savedJobIds, saveJob, unsaveJob } =
     useJobs();
   const [firstName, setFirstName] = useState<string>("");
@@ -195,6 +198,17 @@ export default function ApplicationFormScreen({
     [jobs, route.params.jobId],
   );
   const isSaved = savedJobIds.includes(route.params.jobId);
+
+  const handleGoBack = () => {
+    if (navigation.canGoBack()) {
+      navigation.goBack();
+      return;
+    }
+
+    navigation.navigate("MainTabs", {
+      screen: route.params.source === "savedJobs" ? "SavedJobs" : "Finder",
+    });
+  };
 
   const clearForm = () => {
     setFirstName("");
@@ -324,15 +338,44 @@ export default function ApplicationFormScreen({
       showsVerticalScrollIndicator={false}
       stickyHeaderIndices={[0]}
     >
-      <View style={applicationFormScreenStyles.stickyHeader}>
+      <View
+        style={[
+          applicationFormScreenStyles.stickyHeader,
+          {
+            backgroundColor: theme.colors.surface,
+            borderBottomColor: theme.colors.border,
+          },
+        ]}
+      >
         <View style={applicationFormScreenStyles.stickyHeaderRow}>
-          <Text style={applicationFormScreenStyles.stickyHeaderTitle}>
+          <Text
+            style={[
+              applicationFormScreenStyles.stickyHeaderTitle,
+              { color: theme.colors.textPrimary },
+            ]}
+          >
             Application Form
           </Text>
-          <View style={applicationFormScreenStyles.statusCapsule}>
-            <Text style={applicationFormScreenStyles.statusCapsuleText}>
-              Currently Applying
-            </Text>
+          <View style={applicationFormScreenStyles.stickyHeaderRightRow}>
+            <View
+              style={[
+                applicationFormScreenStyles.statusCapsule,
+                {
+                  borderColor: theme.colors.border,
+                  backgroundColor: isDarkMode ? "#374151" : "#f9fafb",
+                },
+              ]}
+            >
+              <Text
+                style={[
+                  applicationFormScreenStyles.statusCapsuleText,
+                  { color: theme.colors.textSecondary },
+                ]}
+              >
+                Currently Applying
+              </Text>
+            </View>
+            <ThemeModeToggle />
           </View>
         </View>
       </View>
@@ -343,8 +386,21 @@ export default function ApplicationFormScreen({
         </>
       ) : null}
 
-      <View style={applicationFormScreenStyles.formContainer}>
-        <Text style={applicationFormScreenStyles.label}>
+      <View
+        style={[
+          applicationFormScreenStyles.formContainer,
+          {
+            backgroundColor: theme.colors.surface,
+            borderColor: theme.colors.border,
+          },
+        ]}
+      >
+        <Text
+          style={[
+            applicationFormScreenStyles.label,
+            { color: theme.colors.textSecondary },
+          ]}
+        >
           First Name
           <Text style={applicationFormScreenStyles.requiredAsterisk}> *</Text>
         </Text>
@@ -362,8 +418,14 @@ export default function ApplicationFormScreen({
             runFieldValidation();
           }}
           placeholder="Enter your first name"
+          placeholderTextColor={theme.colors.textMuted}
           style={[
             applicationFormScreenStyles.input,
+            {
+              color: theme.colors.textPrimary,
+              borderColor: theme.colors.border,
+              backgroundColor: isDarkMode ? "#111827" : "#fff",
+            },
             touchedFields.firstName && fieldErrors.firstName
               ? applicationFormScreenStyles.inputError
               : undefined,
@@ -375,7 +437,14 @@ export default function ApplicationFormScreen({
           </Text>
         ) : null}
 
-        <Text style={applicationFormScreenStyles.label}>Middle Name</Text>
+        <Text
+          style={[
+            applicationFormScreenStyles.label,
+            { color: theme.colors.textSecondary },
+          ]}
+        >
+          Middle Name
+        </Text>
         <TextInput
           value={middleName}
           onChangeText={(value) => {
@@ -390,8 +459,14 @@ export default function ApplicationFormScreen({
             runFieldValidation();
           }}
           placeholder="Enter your middle name"
+          placeholderTextColor={theme.colors.textMuted}
           style={[
             applicationFormScreenStyles.input,
+            {
+              color: theme.colors.textPrimary,
+              borderColor: theme.colors.border,
+              backgroundColor: isDarkMode ? "#111827" : "#fff",
+            },
             touchedFields.middleName && fieldErrors.middleName
               ? applicationFormScreenStyles.inputError
               : undefined,
@@ -403,7 +478,12 @@ export default function ApplicationFormScreen({
           </Text>
         ) : null}
 
-        <Text style={applicationFormScreenStyles.label}>
+        <Text
+          style={[
+            applicationFormScreenStyles.label,
+            { color: theme.colors.textSecondary },
+          ]}
+        >
           Last Name
           <Text style={applicationFormScreenStyles.requiredAsterisk}> *</Text>
         </Text>
@@ -421,8 +501,14 @@ export default function ApplicationFormScreen({
             runFieldValidation();
           }}
           placeholder="Enter your last name"
+          placeholderTextColor={theme.colors.textMuted}
           style={[
             applicationFormScreenStyles.input,
+            {
+              color: theme.colors.textPrimary,
+              borderColor: theme.colors.border,
+              backgroundColor: isDarkMode ? "#111827" : "#fff",
+            },
             touchedFields.lastName && fieldErrors.lastName
               ? applicationFormScreenStyles.inputError
               : undefined,
@@ -434,7 +520,12 @@ export default function ApplicationFormScreen({
           </Text>
         ) : null}
 
-        <Text style={applicationFormScreenStyles.label}>
+        <Text
+          style={[
+            applicationFormScreenStyles.label,
+            { color: theme.colors.textSecondary },
+          ]}
+        >
           Email
           <Text style={applicationFormScreenStyles.requiredAsterisk}> *</Text>
         </Text>
@@ -454,8 +545,14 @@ export default function ApplicationFormScreen({
           placeholder="Enter your email"
           keyboardType="email-address"
           autoCapitalize="none"
+          placeholderTextColor={theme.colors.textMuted}
           style={[
             applicationFormScreenStyles.input,
+            {
+              color: theme.colors.textPrimary,
+              borderColor: theme.colors.border,
+              backgroundColor: isDarkMode ? "#111827" : "#fff",
+            },
             touchedFields.email && fieldErrors.email
               ? applicationFormScreenStyles.inputError
               : undefined,
@@ -467,16 +564,32 @@ export default function ApplicationFormScreen({
           </Text>
         ) : null}
 
-        <Text style={applicationFormScreenStyles.label}>
+        <Text
+          style={[
+            applicationFormScreenStyles.label,
+            { color: theme.colors.textSecondary },
+          ]}
+        >
           Contact Number
           <Text style={applicationFormScreenStyles.requiredAsterisk}> *</Text>
         </Text>
         <View style={applicationFormScreenStyles.contactRow}>
           <Pressable
-            style={applicationFormScreenStyles.countryCodeButton}
+            style={[
+              applicationFormScreenStyles.countryCodeButton,
+              {
+                borderColor: theme.colors.border,
+                backgroundColor: isDarkMode ? "#111827" : "#fff",
+              },
+            ]}
             onPress={() => setShowCountryCodePicker(true)}
           >
-            <Text style={applicationFormScreenStyles.countryCodeText}>
+            <Text
+              style={[
+                applicationFormScreenStyles.countryCodeText,
+                { color: theme.colors.textSecondary },
+              ]}
+            >
               {selectedCountryOption.flag} {selectedCountryOption.code}
             </Text>
           </Pressable>
@@ -491,9 +604,15 @@ export default function ApplicationFormScreen({
             placeholder="Enter your contact number"
             keyboardType="phone-pad"
             maxLength={15}
+            placeholderTextColor={theme.colors.textMuted}
             style={[
               applicationFormScreenStyles.input,
               applicationFormScreenStyles.contactInput,
+              {
+                color: theme.colors.textPrimary,
+                borderColor: theme.colors.border,
+                backgroundColor: isDarkMode ? "#111827" : "#fff",
+              },
               touchedFields.contactNumber && fieldErrors.contactNumber
                 ? applicationFormScreenStyles.inputError
                 : undefined,
@@ -506,7 +625,12 @@ export default function ApplicationFormScreen({
           </Text>
         ) : null}
 
-        <Text style={applicationFormScreenStyles.label}>
+        <Text
+          style={[
+            applicationFormScreenStyles.label,
+            { color: theme.colors.textSecondary },
+          ]}
+        >
           Why should we hire you?
           <Text style={applicationFormScreenStyles.requiredAsterisk}> *</Text>
         </Text>
@@ -521,9 +645,15 @@ export default function ApplicationFormScreen({
           multiline
           maxLength={WHY_HIRE_MAX_LENGTH}
           textAlignVertical="top"
+          placeholderTextColor={theme.colors.textMuted}
           style={[
             applicationFormScreenStyles.input,
             applicationFormScreenStyles.textArea,
+            {
+              color: theme.colors.textPrimary,
+              borderColor: theme.colors.border,
+              backgroundColor: isDarkMode ? "#111827" : "#fff",
+            },
             touchedFields.whyHire && fieldErrors.whyHire
               ? applicationFormScreenStyles.inputError
               : undefined,
@@ -535,19 +665,37 @@ export default function ApplicationFormScreen({
               {fieldErrors.whyHire}
             </Text>
           ) : (
-            <Text style={applicationFormScreenStyles.helperHintText}>
+            <Text
+              style={[
+                applicationFormScreenStyles.helperHintText,
+                { color: theme.colors.textMuted },
+              ]}
+            >
               Minimum 30 characters.
             </Text>
           )}
-          <Text style={applicationFormScreenStyles.characterCounter}>
+          <Text
+            style={[
+              applicationFormScreenStyles.characterCounter,
+              { color: theme.colors.textMuted },
+            ]}
+          >
             {whyHire.length}/{WHY_HIRE_MAX_LENGTH}
           </Text>
         </View>
       </View>
 
-      <View style={applicationFormScreenStyles.actionsContainer}>
+      <View
+        style={[
+          applicationFormScreenStyles.actionsContainer,
+          {
+            backgroundColor: theme.colors.surface,
+            borderColor: theme.colors.border,
+          },
+        ]}
+      >
         <View style={applicationFormScreenStyles.buttonRow}>
-          <CircularBackButton onPress={() => navigation.goBack()} />
+          <CircularBackButton onPress={handleGoBack} />
           <View style={applicationFormScreenStyles.submitButtonWrap}>
             <AppButton label="Submit" onPress={handleSubmit} />
           </View>
@@ -594,10 +742,21 @@ export default function ApplicationFormScreen({
           onPress={() => setShowCountryCodePicker(false)}
         >
           <Pressable
-            style={applicationFormScreenStyles.countryPickerContainer}
+            style={[
+              applicationFormScreenStyles.countryPickerContainer,
+              {
+                backgroundColor: theme.colors.surface,
+                borderColor: theme.colors.border,
+              },
+            ]}
             onPress={() => undefined}
           >
-            <Text style={applicationFormScreenStyles.countryPickerTitle}>
+            <Text
+              style={[
+                applicationFormScreenStyles.countryPickerTitle,
+                { color: theme.colors.textPrimary },
+              ]}
+            >
               Select country code
             </Text>
 
@@ -611,11 +770,20 @@ export default function ApplicationFormScreen({
               {COUNTRY_PHONE_OPTIONS.map((option) => (
                 <Pressable
                   key={option.isoCode}
-                  style={applicationFormScreenStyles.countryPickerOption}
+                  style={[
+                    applicationFormScreenStyles.countryPickerOption,
+                    {
+                      borderColor: theme.colors.border,
+                      backgroundColor: isDarkMode ? "#374151" : "#fff",
+                    },
+                  ]}
                   onPress={() => handleSelectCountryCode(option)}
                 >
                   <Text
-                    style={applicationFormScreenStyles.countryPickerOptionText}
+                    style={[
+                      applicationFormScreenStyles.countryPickerOptionText,
+                      { color: theme.colors.textSecondary },
+                    ]}
                   >
                     {option.flag} {option.country} ({option.code})
                   </Text>

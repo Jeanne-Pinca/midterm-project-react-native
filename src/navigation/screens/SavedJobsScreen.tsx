@@ -1,8 +1,8 @@
 import { BottomTabScreenProps } from "@react-navigation/bottom-tabs";
 import { CompositeScreenProps } from "@react-navigation/native";
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
-import { useEffect, useMemo, useRef, useState } from "react";
-import { Text, View } from "react-native";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { ListRenderItemInfo, Text, View } from "react-native";
 
 import AppButton from "../../components/AppButton";
 import AppPrompt from "../../components/AppPrompt";
@@ -12,7 +12,9 @@ import JobInfoCard from "../../components/JobInfoCard";
 import RefreshableList from "../../components/RefreshableList";
 import SearchBar from "../../components/SearchBar";
 import SearchHelpContent from "../../components/SearchHelpContent";
+import ThemeModeToggle from "../../components/ThemeModeToggle";
 import { Job, useJobs } from "../../context/JobContext";
+import { useTheme } from "../../context/ThemeContext";
 import { filterJobsBySearchQuery } from "../../utils/jobSearch";
 import { RootStackParamList, RootTabParamList } from "../index";
 import { savedJobsScreenStyles } from "./styles/savedJobsScreenStyles";
@@ -23,6 +25,7 @@ type SavedJobsScreenProps = CompositeScreenProps<
 >;
 
 export default function SavedJobsScreen({ navigation }: SavedJobsScreenProps) {
+  const { theme } = useTheme();
   const [query, setQuery] = useState<string>("");
   const [showSavePrompt, setShowSavePrompt] = useState<boolean>(false);
   const [showSearchInfoPrompt, setShowSearchInfoPrompt] =
@@ -79,62 +82,76 @@ export default function SavedJobsScreen({ navigation }: SavedJobsScreenProps) {
     return filterJobsBySearchQuery(savedOnly, query);
   }, [jobs, savedJobIds, query]);
 
-  const renderSavedJob = ({ item }: { item: Job }) => {
-    const applyButtonState = getApplyButtonState(item.id);
+  const renderFooter = useCallback(
+    (job: Job) => {
+      const applyButtonState = getApplyButtonState(job.id);
 
-    return (
-      <JobInfoCard
-        job={item}
-        footer={
-          <>
-            <View style={savedJobsScreenStyles.buttonRow}>
-              <BookmarkButton
-                isSaved
-                onPress={() => handleRemoveJob(item.id)}
-              />
-              <AppButton
-                label="Details"
-                onPress={() =>
-                  navigation.navigate("JobDetails", {
-                    jobId: item.id,
-                    source: "savedJobs",
-                  })
-                }
-              />
-              <AppButton
-                label={
-                  applyButtonState.isSubmitted ? "View Application" : "Apply"
-                }
-                variant={
-                  applyButtonState.isSubmitted
-                    ? "primary"
-                    : applyButtonState.variant
-                }
-                disabled={false}
-                onPress={() => {
-                  if (applyButtonState.isSubmitted) {
-                    navigation.navigate("ApplicationDetails", {
-                      jobId: item.id,
-                    });
-                    return;
-                  }
+      return (
+        <View style={savedJobsScreenStyles.buttonRow}>
+          <BookmarkButton isSaved onPress={() => handleRemoveJob(job.id)} />
+          <AppButton
+            label="Details"
+            onPress={() =>
+              navigation.navigate("JobDetails", {
+                jobId: job.id,
+                source: "savedJobs",
+              })
+            }
+          />
+          <AppButton
+            label={applyButtonState.isSubmitted ? "View Application" : "Apply"}
+            variant={
+              applyButtonState.isSubmitted
+                ? "primary"
+                : applyButtonState.variant
+            }
+            disabled={false}
+            onPress={() => {
+              if (applyButtonState.isSubmitted) {
+                navigation.navigate("ApplicationDetails", {
+                  jobId: job.id,
+                });
+                return;
+              }
 
-                  navigation.navigate("ApplicationForm", {
-                    jobId: item.id,
-                    source: "savedJobs",
-                  });
-                }}
-              />
-            </View>
-          </>
-        }
-      />
-    );
-  };
+              navigation.navigate("ApplicationForm", {
+                jobId: job.id,
+                source: "savedJobs",
+              });
+            }}
+          />
+        </View>
+      );
+    },
+    [getApplyButtonState, handleRemoveJob, navigation],
+  );
+
+  const renderSavedJob = useCallback(
+    ({ item }: ListRenderItemInfo<Job>) => (
+      <JobInfoCard job={item} footer={renderFooter} />
+    ),
+    [renderFooter],
+  );
+
+  const keyExtractor = useCallback((item: Job) => item.id, []);
+
+  const handleRefresh = useCallback(() => {
+    void refreshJobs();
+  }, [refreshJobs]);
 
   return (
     <View style={savedJobsScreenStyles.container}>
-      <Text style={savedJobsScreenStyles.title}>Saved Jobs</Text>
+      <View style={savedJobsScreenStyles.headerRow}>
+        <Text
+          style={[
+            savedJobsScreenStyles.title,
+            { color: theme.colors.textPrimary },
+          ]}
+        >
+          Saved Jobs
+        </Text>
+        <ThemeModeToggle />
+      </View>
 
       <SearchBar
         value={query}
@@ -146,15 +163,20 @@ export default function SavedJobsScreen({ navigation }: SavedJobsScreenProps) {
 
       <RefreshableList
         data={savedJobs}
-        keyExtractor={(item) => item.id}
+        keyExtractor={keyExtractor}
         renderItem={renderSavedJob}
         showsVerticalScrollIndicator={false}
         showsHorizontalScrollIndicator={false}
         refreshing={isLoading}
-        onRefresh={() => void refreshJobs()}
+        onRefresh={handleRefresh}
         contentContainerStyle={savedJobsScreenStyles.listContainer}
         ListEmptyComponent={
-          <Text style={savedJobsScreenStyles.emptyText}>
+          <Text
+            style={[
+              savedJobsScreenStyles.emptyText,
+              { color: theme.colors.textMuted },
+            ]}
+          >
             No saved jobs found.
           </Text>
         }

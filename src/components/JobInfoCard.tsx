@@ -3,11 +3,12 @@ import { memo, ReactNode } from "react";
 import { Image, Linking, StyleSheet, Text, View } from "react-native";
 
 import { Job } from "../context/JobContext";
+import { useTheme } from "../context/ThemeContext";
 import InfoCapsule from "./InfoCapsule";
 
 type JobInfoCardProps = {
   job: Job;
-  footer?: ReactNode;
+  footer?: ReactNode | ((job: Job) => ReactNode);
 };
 
 const CURRENCY_SYMBOL_BY_CODE: Record<string, string> = {
@@ -130,6 +131,8 @@ const JobInfoCard = memo(function JobInfoCard({
   job,
   footer,
 }: JobInfoCardProps) {
+  const { isDarkMode, theme } = useTheme();
+
   const currencySymbol = getCurrencySymbol(job);
   const minSalaryDisplay = getSalaryBoundaryDisplay(
     job.minSalary,
@@ -164,16 +167,38 @@ const JobInfoCard = memo(function JobInfoCard({
   };
 
   return (
-    <View style={styles.card}>
+    <View
+      style={[
+        styles.card,
+        {
+          borderColor: theme.colors.border,
+          backgroundColor: isDarkMode ? "#1f2937" : "#fff",
+        },
+      ]}
+    >
       <View style={styles.jobHeaderRow}>
         <View style={styles.jobHeaderInfoContainer}>
-          <Text style={styles.jobTitleWithLogo}>{job.title}</Text>
-          <Text style={styles.companyText}>{job.company}</Text>
+          <Text
+            style={[
+              styles.jobTitleWithLogo,
+              { color: theme.colors.textPrimary },
+            ]}
+          >
+            {job.title}
+          </Text>
+          <Text
+            style={[styles.companyText, { color: theme.colors.textSecondary }]}
+          >
+            {job.company}
+          </Text>
         </View>
         {job.companyLogo ? (
           <Image
             source={{ uri: job.companyLogo }}
-            style={styles.cardLogo}
+            style={[
+              styles.cardLogo,
+              { backgroundColor: isDarkMode ? "#374151" : "#f3f4f6" },
+            ]}
             resizeMode="contain"
           />
         ) : null}
@@ -181,7 +206,15 @@ const JobInfoCard = memo(function JobInfoCard({
 
       <View style={styles.detailsSection}>
         <View style={styles.detailsColumns}>
-          <View style={styles.detailsColumnBox}>
+          <View
+            style={[
+              styles.detailsColumnBox,
+              {
+                borderColor: theme.colors.border,
+                backgroundColor: isDarkMode ? "#111827" : "#fff",
+              },
+            ]}
+          >
             <View style={styles.detailsColumn}>
               <InfoCapsule text={job.mainCategory} iconName="shape" />
               <InfoCapsule
@@ -200,7 +233,15 @@ const JobInfoCard = memo(function JobInfoCard({
             </View>
           </View>
 
-          <View style={styles.detailsColumnBox}>
+          <View
+            style={[
+              styles.detailsColumnBox,
+              {
+                borderColor: theme.colors.border,
+                backgroundColor: isDarkMode ? "#111827" : "#fff",
+              },
+            ]}
+          >
             <View style={styles.detailsColumn}>
               <InfoCapsule text={salaryDisplay} iconName="cash" />
               <InfoCapsule text={locationDisplay} iconName="map-marker" />
@@ -217,7 +258,7 @@ const JobInfoCard = memo(function JobInfoCard({
           <MaterialCommunityIcons
             name="tag"
             size={16}
-            color="#6b7280"
+            color={theme.colors.textMuted}
             style={styles.tagIcon}
           />
           <View style={styles.tagsCapsulesWrap}>
@@ -232,7 +273,7 @@ const JobInfoCard = memo(function JobInfoCard({
         </View>
       </View>
 
-      {footer}
+      {typeof footer === "function" ? footer(job) : footer}
     </View>
   );
 });

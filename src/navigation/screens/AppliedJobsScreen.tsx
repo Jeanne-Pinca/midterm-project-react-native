@@ -1,8 +1,8 @@
 import { BottomTabScreenProps } from "@react-navigation/bottom-tabs";
 import { CompositeScreenProps } from "@react-navigation/native";
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
-import { useMemo, useState } from "react";
-import { Text, View } from "react-native";
+import { useCallback, useMemo, useState } from "react";
+import { ListRenderItemInfo, Text, View } from "react-native";
 
 import AppButton from "../../components/AppButton";
 import AppPrompt from "../../components/AppPrompt";
@@ -10,7 +10,9 @@ import JobInfoCard from "../../components/JobInfoCard";
 import RefreshableList from "../../components/RefreshableList";
 import SearchBar from "../../components/SearchBar";
 import SearchHelpContent from "../../components/SearchHelpContent";
+import ThemeModeToggle from "../../components/ThemeModeToggle";
 import { Job, useJobs } from "../../context/JobContext";
+import { useTheme } from "../../context/ThemeContext";
 import { filterJobsBySearchQuery } from "../../utils/jobSearch";
 import { RootStackParamList, RootTabParamList } from "../index";
 import { appliedJobsScreenStyles } from "./styles/appliedJobsScreenStyles";
@@ -23,6 +25,7 @@ type AppliedJobsScreenProps = CompositeScreenProps<
 export default function AppliedJobsScreen({
   navigation,
 }: AppliedJobsScreenProps) {
+  const { theme } = useTheme();
   const [query, setQuery] = useState<string>("");
   const [showSearchInfoPrompt, setShowSearchInfoPrompt] =
     useState<boolean>(false);
@@ -40,35 +43,56 @@ export default function AppliedJobsScreen({
     setShowSearchInfoPrompt(true);
   };
 
-  const renderAppliedJob = ({ item }: { item: Job }) => (
-    <JobInfoCard
-      job={item}
-      footer={
-        <View style={appliedJobsScreenStyles.buttonRow}>
-          <AppButton
-            label="Details"
-            onPress={() =>
-              navigation.navigate("JobDetails", {
-                jobId: item.id,
-                source: "appliedJobs",
-              })
-            }
-          />
-          <AppButton
-            label="View Application"
-            variant="muted"
-            onPress={() =>
-              navigation.navigate("ApplicationDetails", { jobId: item.id })
-            }
-          />
-        </View>
-      }
-    />
+  const renderFooter = useCallback(
+    (job: Job) => (
+      <View style={appliedJobsScreenStyles.buttonRow}>
+        <AppButton
+          label="Details"
+          onPress={() =>
+            navigation.navigate("JobDetails", {
+              jobId: job.id,
+              source: "appliedJobs",
+            })
+          }
+        />
+        <AppButton
+          label="View Application"
+          variant="muted"
+          onPress={() =>
+            navigation.navigate("ApplicationDetails", { jobId: job.id })
+          }
+        />
+      </View>
+    ),
+    [navigation],
   );
+
+  const renderAppliedJob = useCallback(
+    ({ item }: ListRenderItemInfo<Job>) => (
+      <JobInfoCard job={item} footer={renderFooter} />
+    ),
+    [renderFooter],
+  );
+
+  const keyExtractor = useCallback((item: Job) => item.id, []);
+
+  const handleRefresh = useCallback(() => {
+    void refreshJobs();
+  }, [refreshJobs]);
 
   return (
     <View style={appliedJobsScreenStyles.container}>
-      <Text style={appliedJobsScreenStyles.title}>Applied Jobs</Text>
+      <View style={appliedJobsScreenStyles.headerRow}>
+        <Text
+          style={[
+            appliedJobsScreenStyles.title,
+            { color: theme.colors.textPrimary },
+          ]}
+        >
+          Applied Jobs
+        </Text>
+        <ThemeModeToggle />
+      </View>
 
       <SearchBar
         value={query}
@@ -80,15 +104,20 @@ export default function AppliedJobsScreen({
 
       <RefreshableList
         data={appliedJobs}
-        keyExtractor={(item) => item.id}
+        keyExtractor={keyExtractor}
         renderItem={renderAppliedJob}
         showsVerticalScrollIndicator={false}
         showsHorizontalScrollIndicator={false}
         refreshing={isLoading}
-        onRefresh={() => void refreshJobs()}
+        onRefresh={handleRefresh}
         contentContainerStyle={appliedJobsScreenStyles.listContainer}
         ListEmptyComponent={
-          <Text style={appliedJobsScreenStyles.emptyText}>
+          <Text
+            style={[
+              appliedJobsScreenStyles.emptyText,
+              { color: theme.colors.textMuted },
+            ]}
+          >
             No applied jobs found.
           </Text>
         }

@@ -7,7 +7,9 @@ import AppPrompt from "../../components/AppPrompt";
 import BookmarkButton from "../../components/BookmarkButton";
 import CircularBackButton from "../../components/CircularBackButton";
 import JobInfoCard from "../../components/JobInfoCard";
+import ThemeModeToggle from "../../components/ThemeModeToggle";
 import { useJobs } from "../../context/JobContext";
+import { useTheme } from "../../context/ThemeContext";
 import { RootStackParamList } from "../index";
 import { applicationFormScreenStyles } from "./styles/applicationFormScreenStyles";
 
@@ -20,6 +22,7 @@ export default function ApplicationDetailsScreen({
   navigation,
   route,
 }: ApplicationDetailsScreenProps) {
+  const { isDarkMode, theme } = useTheme();
   const {
     jobs,
     applicationDetailsByJobId,
@@ -39,6 +42,15 @@ export default function ApplicationDetailsScreen({
 
   const applicationDetails = applicationDetailsByJobId[route.params.jobId];
   const isSaved = savedJobIds.includes(route.params.jobId);
+
+  const handleGoBack = () => {
+    if (navigation.canGoBack()) {
+      navigation.goBack();
+      return;
+    }
+
+    navigation.navigate("MainTabs", { screen: "AppliedJobs" });
+  };
 
   const formatSubmittedAt = (value?: string): string => {
     if (!value) {
@@ -88,53 +100,149 @@ export default function ApplicationDetailsScreen({
       showsVerticalScrollIndicator={false}
       stickyHeaderIndices={[0]}
     >
-      <View style={applicationFormScreenStyles.stickyHeader}>
+      <View
+        style={[
+          applicationFormScreenStyles.stickyHeader,
+          {
+            backgroundColor: theme.colors.surface,
+            borderBottomColor: theme.colors.border,
+          },
+        ]}
+      >
         <View style={applicationFormScreenStyles.stickyHeaderRow}>
-          <Text style={applicationFormScreenStyles.stickyHeaderTitle}>
+          <Text
+            style={[
+              applicationFormScreenStyles.stickyHeaderTitle,
+              { color: theme.colors.textPrimary },
+            ]}
+          >
             Application Details
           </Text>
-          <View style={applicationFormScreenStyles.statusCapsule}>
-            <Text style={applicationFormScreenStyles.statusCapsuleText}>
-              Submitted
-            </Text>
+          <View style={applicationFormScreenStyles.stickyHeaderRightRow}>
+            <View
+              style={[
+                applicationFormScreenStyles.statusCapsule,
+                {
+                  borderColor: theme.colors.border,
+                  backgroundColor: isDarkMode ? "#374151" : "#f9fafb",
+                },
+              ]}
+            >
+              <Text
+                style={[
+                  applicationFormScreenStyles.statusCapsuleText,
+                  { color: theme.colors.textSecondary },
+                ]}
+              >
+                Submitted
+              </Text>
+            </View>
+            <ThemeModeToggle />
           </View>
         </View>
       </View>
 
-      <Text style={applicationFormScreenStyles.sectionTitle}>Job Overview</Text>
+      <Text
+        style={[
+          applicationFormScreenStyles.sectionTitle,
+          { color: theme.colors.textPrimary },
+        ]}
+      >
+        Job Overview
+      </Text>
       {selectedJob ? <JobInfoCard job={selectedJob} /> : null}
 
-      <View style={applicationFormScreenStyles.formContainer}>
+      <View
+        style={[
+          applicationFormScreenStyles.formContainer,
+          {
+            backgroundColor: theme.colors.surface,
+            borderColor: theme.colors.border,
+          },
+        ]}
+      >
         <View style={applicationFormScreenStyles.dashedHeaderRow}>
           <View style={applicationFormScreenStyles.dashedHeaderLine} />
-          <Text style={applicationFormScreenStyles.dashedHeaderText}>
+          <Text
+            style={[
+              applicationFormScreenStyles.dashedHeaderText,
+              { color: theme.colors.textSecondary },
+            ]}
+          >
             Filled Out Application Form
           </Text>
           <View style={applicationFormScreenStyles.dashedHeaderLine} />
         </View>
 
-        <Text style={applicationFormScreenStyles.label}>Name</Text>
+        <Text
+          style={[
+            applicationFormScreenStyles.label,
+            { color: theme.colors.textSecondary },
+          ]}
+        >
+          Name
+        </Text>
         <TextInput
           value={applicationDetails?.name ?? "Not available"}
           editable={false}
-          style={applicationFormScreenStyles.input}
+          style={[
+            applicationFormScreenStyles.input,
+            {
+              color: theme.colors.textPrimary,
+              borderColor: theme.colors.border,
+              backgroundColor: isDarkMode ? "#111827" : "#fff",
+            },
+          ]}
         />
 
-        <Text style={applicationFormScreenStyles.label}>Email</Text>
+        <Text
+          style={[
+            applicationFormScreenStyles.label,
+            { color: theme.colors.textSecondary },
+          ]}
+        >
+          Email
+        </Text>
         <TextInput
           value={applicationDetails?.email ?? "Not available"}
           editable={false}
-          style={applicationFormScreenStyles.input}
+          style={[
+            applicationFormScreenStyles.input,
+            {
+              color: theme.colors.textPrimary,
+              borderColor: theme.colors.border,
+              backgroundColor: isDarkMode ? "#111827" : "#fff",
+            },
+          ]}
         />
 
-        <Text style={applicationFormScreenStyles.label}>Contact Number</Text>
+        <Text
+          style={[
+            applicationFormScreenStyles.label,
+            { color: theme.colors.textSecondary },
+          ]}
+        >
+          Contact Number
+        </Text>
         <TextInput
           value={applicationDetails?.contactNumber ?? "Not available"}
           editable={false}
-          style={applicationFormScreenStyles.input}
+          style={[
+            applicationFormScreenStyles.input,
+            {
+              color: theme.colors.textPrimary,
+              borderColor: theme.colors.border,
+              backgroundColor: isDarkMode ? "#111827" : "#fff",
+            },
+          ]}
         />
 
-        <Text style={applicationFormScreenStyles.label}>
+        <Text
+          style={[
+            applicationFormScreenStyles.label,
+            { color: theme.colors.textSecondary },
+          ]}
+        >
           Why should we hire you?
         </Text>
         <TextInput
@@ -145,20 +253,47 @@ export default function ApplicationDetailsScreen({
           style={[
             applicationFormScreenStyles.input,
             applicationFormScreenStyles.textArea,
+            {
+              color: theme.colors.textPrimary,
+              borderColor: theme.colors.border,
+              backgroundColor: isDarkMode ? "#111827" : "#fff",
+            },
           ]}
         />
 
-        <Text style={applicationFormScreenStyles.label}>Submitted At</Text>
+        <Text
+          style={[
+            applicationFormScreenStyles.label,
+            { color: theme.colors.textSecondary },
+          ]}
+        >
+          Submitted At
+        </Text>
         <TextInput
           value={formatSubmittedAt(applicationDetails?.submittedAt)}
           editable={false}
-          style={applicationFormScreenStyles.input}
+          style={[
+            applicationFormScreenStyles.input,
+            {
+              color: theme.colors.textPrimary,
+              borderColor: theme.colors.border,
+              backgroundColor: isDarkMode ? "#111827" : "#fff",
+            },
+          ]}
         />
       </View>
 
-      <View style={applicationFormScreenStyles.actionsContainer}>
+      <View
+        style={[
+          applicationFormScreenStyles.actionsContainer,
+          {
+            backgroundColor: theme.colors.surface,
+            borderColor: theme.colors.border,
+          },
+        ]}
+      >
         <View style={applicationFormScreenStyles.buttonRow}>
-          <CircularBackButton onPress={() => navigation.goBack()} />
+          <CircularBackButton onPress={handleGoBack} />
           <View style={applicationFormScreenStyles.submitButtonWrap}>
             <AppButton
               label="Delete Application"
