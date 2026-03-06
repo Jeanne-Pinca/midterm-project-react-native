@@ -68,7 +68,7 @@ function getCombinedSalaryDisplay(
     return `${minSalary}+`;
   }
 
-  return `${minSalary} - ${maxSalary}`;
+  return `${minSalary}–${maxSalary}`;
 }
 
 function formatDisplayDate(value: string): string {
@@ -243,6 +243,7 @@ const styles = StyleSheet.create({
   card: {
     borderWidth: 1,
     borderColor: "#e5e7eb",
+    backgroundColor: "#fff",
     borderRadius: 12,
     padding: 12,
     marginBottom: 12,

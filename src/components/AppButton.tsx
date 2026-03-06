@@ -34,19 +34,19 @@ export default function AppButton({
 const styles = StyleSheet.create({
   button: {
     flex: 1,
-    backgroundColor: "#111827",
+    backgroundColor: "#e7a7f0",
     borderRadius: 10,
     paddingVertical: 10,
     alignItems: "center",
   },
   buttonMuted: {
-    backgroundColor: "#4b5563",
+    backgroundColor: "#e7a7f0",
   },
   buttonDisabled: {
     opacity: 0.7,
   },
   buttonText: {
-    color: "#fff",
+    color: "#111827",
     fontWeight: "600",
   },
 });

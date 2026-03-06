@@ -3,11 +3,20 @@ import { StyleSheet } from "react-native";
 export const applicationFormScreenStyles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#fff",
+    backgroundColor: "transparent",
   },
   contentContainer: {
     paddingHorizontal: 16,
     paddingVertical: 16,
+    gap: 8,
+  },
+  formContainer: {
+    backgroundColor: "#fff",
+    borderWidth: 1,
+    borderColor: "#e5e7eb",
+    borderRadius: 12,
+    paddingHorizontal: 12,
+    paddingVertical: 12,
     gap: 8,
   },
   stickyHeader: {
@@ -51,6 +60,22 @@ export const applicationFormScreenStyles = StyleSheet.create({
     color: "#111827",
     marginTop: 8,
   },
+  dashedHeaderRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 10,
+    marginBottom: 4,
+  },
+  dashedHeaderLine: {
+    flex: 1,
+    height: 1,
+    backgroundColor: "#9ca3af",
+  },
+  dashedHeaderText: {
+    fontSize: 14,
+    fontWeight: "700",
+    color: "#374151",
+  },
   descriptionBox: {
     borderWidth: 1,
     borderColor: "#d1d5db",
@@ -69,6 +94,10 @@ export const applicationFormScreenStyles = StyleSheet.create({
     color: "#374151",
     marginTop: 4,
   },
+  requiredAsterisk: {
+    color: "#dc2626",
+    fontWeight: "700",
+  },
   input: {
     borderWidth: 1,
     borderColor: "#d1d5db",
@@ -76,12 +105,115 @@ export const applicationFormScreenStyles = StyleSheet.create({
     paddingHorizontal: 12,
     paddingVertical: 10,
   },
+  inputError: {
+    borderColor: "#dc2626",
+  },
+  contactRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+  },
+  countryCodeButton: {
+    borderWidth: 1,
+    borderColor: "#d1d5db",
+    borderRadius: 10,
+    paddingHorizontal: 12,
+    paddingVertical: 12,
+    minWidth: 72,
+    alignItems: "center",
+    backgroundColor: "#fff",
+  },
+  countryCodeText: {
+    fontSize: 14,
+    fontWeight: "600",
+    color: "#374151",
+  },
+  contactInput: {
+    flex: 1,
+  },
   textArea: {
     minHeight: 120,
   },
+  helperMetaRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    gap: 8,
+    marginTop: -2,
+  },
+  characterCounter: {
+    fontSize: 12,
+    color: "#6b7280",
+    textAlign: "right",
+  },
+  helperErrorText: {
+    color: "#dc2626",
+    fontSize: 12,
+    flex: 1,
+  },
+  helperHintText: {
+    color: "#6b7280",
+    fontSize: 12,
+    flex: 1,
+  },
   buttonRow: {
     flexDirection: "row",
+    alignItems: "center",
     gap: 8,
-    marginTop: 8,
+  },
+  actionsContainer: {
+    backgroundColor: "#fff",
+    borderWidth: 1,
+    borderColor: "#e5e7eb",
+    borderRadius: 12,
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+  },
+  submitButtonWrap: {
+    flex: 1,
+  },
+  deleteButton: {
+    backgroundColor: "#ef4444",
+  },
+  countryPickerBackdrop: {
+    flex: 1,
+    backgroundColor: "rgba(17, 24, 39, 0.45)",
+    justifyContent: "center",
+    paddingHorizontal: 24,
+  },
+  countryPickerContainer: {
+    backgroundColor: "#fff",
+    borderRadius: 14,
+    paddingHorizontal: 14,
+    paddingVertical: 12,
+    borderWidth: 1,
+    borderColor: "#e5e7eb",
+    gap: 8,
+  },
+  countryPickerTitle: {
+    fontSize: 16,
+    fontWeight: "700",
+    color: "#111827",
+    marginBottom: 2,
+  },
+  countryPickerOptionsList: {
+    maxHeight: 360,
+  },
+  countryPickerOptionsContent: {
+    gap: 8,
+    paddingBottom: 2,
+  },
+  countryPickerOption: {
+    borderWidth: 1,
+    borderColor: "#e5e7eb",
+    borderRadius: 10,
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+    backgroundColor: "#fff",
+  },
+  countryPickerOptionText: {
+    fontSize: 14,
+    color: "#374151",
+    fontWeight: "500",
   },
 });

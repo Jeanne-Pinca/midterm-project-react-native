@@ -4,8 +4,8 @@ export const savedJobsScreenStyles = StyleSheet.create({
   container: {
     flex: 1,
     paddingHorizontal: 16,
-    paddingVertical: 16,
-    backgroundColor: "#fff",
+    paddingTop: 16,
+    backgroundColor: "transparent",
   },
   title: {
     fontSize: 24,

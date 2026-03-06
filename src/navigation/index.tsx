@@ -1,20 +1,18 @@
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import {
-  NavigationContainer,
-  NavigatorScreenParams,
+    DefaultTheme,
+    NavigationContainer,
+    NavigatorScreenParams,
 } from "@react-navigation/native";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 
+import ApplicationDetailsScreen from "./screens/ApplicationDetailsScreen";
+import ApplicationFormScreen from "./screens/ApplicationFormScreen";
 import AppliedJobsScreen from "./screens/AppliedJobsScreen";
 import FinderScreen from "./screens/FinderScreen";
 import JobDetailsScreen from "./screens/JobDetailsScreen";
 import SavedJobsScreen from "./screens/SavedJobsScreen";
-
-const ApplicationFormScreen =
-  require("./screens/ApplicationFormScreen").default;
-const ApplicationDetailsScreen =
-  require("./screens/ApplicationDetailsScreen").default;
 
 export type RootStackParamList = {
   MainTabs: NavigatorScreenParams<RootTabParamList> | undefined;
@@ -35,9 +33,30 @@ export type RootTabParamList = {
 const Stack = createNativeStackNavigator<RootStackParamList>();
 const Tab = createBottomTabNavigator<RootTabParamList>();
 
+const navigationTheme = {
+  ...DefaultTheme,
+  colors: {
+    ...DefaultTheme.colors,
+    background: "transparent",
+  },
+};
+
 function MainTabs() {
   return (
-    <Tab.Navigator screenOptions={{ headerShown: false }}>
+    <Tab.Navigator
+      screenOptions={{
+        headerShown: false,
+        freezeOnBlur: true,
+        sceneStyle: {
+          backgroundColor: "transparent",
+        },
+        tabBarStyle: {
+          borderTopWidth: 0,
+          elevation: 0,
+          shadowOpacity: 0,
+        },
+      }}
+    >
       <Tab.Screen
         name="Finder"
         component={FinderScreen}
@@ -82,8 +101,16 @@ function MainTabs() {
 
 export default function Navigation() {
   return (
-    <NavigationContainer>
-      <Stack.Navigator screenOptions={{ headerShown: false }}>
+    <NavigationContainer theme={navigationTheme}>
+      <Stack.Navigator
+        screenOptions={{
+          headerShown: false,
+          animation: "fade",
+          contentStyle: {
+            backgroundColor: "transparent",
+          },
+        }}
+      >
         <Stack.Screen name="MainTabs" component={MainTabs} />
         <Stack.Screen name="JobDetails" component={JobDetailsScreen} />
         <Stack.Screen

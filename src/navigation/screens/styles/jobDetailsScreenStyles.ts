@@ -5,7 +5,7 @@ export const jobDetailsScreenStyles = StyleSheet.create({
     flex: 1,
     paddingHorizontal: 16,
     paddingVertical: 16,
-    backgroundColor: "#fff",
+    backgroundColor: "transparent",
   },
   title: {
     fontSize: 24,
@@ -14,6 +14,9 @@ export const jobDetailsScreenStyles = StyleSheet.create({
   },
   listContainer: {
     paddingBottom: 24,
+  },
+  listContainerWithStickyPadding: {
+    paddingBottom: 112,
   },
   card: {
     borderWidth: 1,
@@ -45,6 +48,7 @@ export const jobDetailsScreenStyles = StyleSheet.create({
   descriptionBox: {
     borderWidth: 1,
     borderColor: "#e5e7eb",
+    backgroundColor: "#fff",
     borderRadius: 12,
     padding: 12,
     marginTop: 8,
@@ -102,7 +106,28 @@ export const jobDetailsScreenStyles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     gap: 8,
+  },
+  actionsInlineContainer: {
     marginTop: 18,
+    marginBottom: 8,
+    borderWidth: 1,
+    borderColor: "#e5e7eb",
+    borderRadius: 12,
+    backgroundColor: "#fff",
+    paddingHorizontal: 10,
+    paddingVertical: 10,
+  },
+  actionsStickyContainer: {
+    position: "absolute",
+    left: 16,
+    right: 16,
+    bottom: 16,
+    borderWidth: 1,
+    borderColor: "#e5e7eb",
+    borderRadius: 12,
+    backgroundColor: "#fff",
+    paddingHorizontal: 10,
+    paddingVertical: 10,
   },
   errorText: {
     color: "#dc2626",

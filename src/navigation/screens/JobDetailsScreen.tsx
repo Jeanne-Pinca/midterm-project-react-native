@@ -1,13 +1,21 @@
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
-import { useEffect, useRef, useState } from "react";
-import { FlatList, Text, View } from "react-native";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import {
+    Animated,
+    FlatList,
+    LayoutChangeEvent,
+    NativeScrollEvent,
+    NativeSyntheticEvent,
+    Text,
+    View,
+} from "react-native";
 
 import AppButton from "../../components/AppButton";
+import AppPrompt from "../../components/AppPrompt";
 import BookmarkButton from "../../components/BookmarkButton";
 import CircularBackButton from "../../components/CircularBackButton";
 import JobInfoCard from "../../components/JobInfoCard";
-import JobSaveStatusPrompt from "../../components/JobSaveStatusPrompt";
 import { useJobApplicationState } from "../../components/hooks/useJobApplicationState";
 import { useJobs } from "../../context/JobContext";
 import { RootStackParamList } from "../index";
@@ -168,13 +176,24 @@ export default function JobDetailsScreen({
   route,
 }: JobDetailsScreenProps) {
   const [showSavePrompt, setShowSavePrompt] = useState<boolean>(false);
+  const [isAtBottom, setIsAtBottom] = useState<boolean>(false);
+  const [showStickyActions, setShowStickyActions] = useState<boolean>(true);
+  const [showInlineActions, setShowInlineActions] = useState<boolean>(false);
   const [savePromptMessage, setSavePromptMessage] = useState<string>(
     "Job has been saved.",
   );
   const promptTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const stickyOpacity = useRef(new Animated.Value(1)).current;
+  const inlineOpacity = useRef(new Animated.Value(0)).current;
+  const scrollOffsetYRef = useRef<number>(0);
+  const contentHeightRef = useRef<number>(0);
+  const layoutHeightRef = useRef<number>(0);
   const { jobs, savedJobIds, saveJob, unsaveJob } = useJobs();
   const { getApplyButtonState } = useJobApplicationState();
-  const selectedJob = jobs.find((job) => job.id === route.params.jobId);
+  const selectedJob = useMemo(
+    () => jobs.find((job) => job.id === route.params.jobId),
+    [jobs, route.params.jobId],
+  );
 
   useEffect(() => {
     return () => {
@@ -183,6 +202,46 @@ export default function JobDetailsScreen({
       }
     };
   }, []);
+
+  useEffect(() => {
+    if (isAtBottom) {
+      setShowInlineActions(true);
+
+      Animated.parallel([
+        Animated.timing(stickyOpacity, {
+          toValue: 0,
+          duration: 120,
+          useNativeDriver: true,
+        }),
+        Animated.timing(inlineOpacity, {
+          toValue: 1,
+          duration: 120,
+          useNativeDriver: true,
+        }),
+      ]).start(() => {
+        setShowStickyActions(false);
+      });
+
+      return;
+    }
+
+    setShowStickyActions(true);
+
+    Animated.parallel([
+      Animated.timing(stickyOpacity, {
+        toValue: 1,
+        duration: 120,
+        useNativeDriver: true,
+      }),
+      Animated.timing(inlineOpacity, {
+        toValue: 0,
+        duration: 120,
+        useNativeDriver: true,
+      }),
+    ]).start(() => {
+      setShowInlineActions(false);
+    });
+  }, [inlineOpacity, isAtBottom, stickyOpacity]);
 
   if (!selectedJob) {
     return (
@@ -196,19 +255,32 @@ export default function JobDetailsScreen({
     );
   }
 
-  const isSaved = savedJobIds.includes(selectedJob.id);
-  const applyButtonState = getApplyButtonState(selectedJob.id);
-  const isOpenedFromFinder = route.params.source === "finder";
-  const isOpenedFromAppliedJobs = route.params.source === "appliedJobs";
-  const isOpenedFromSavedJobs = route.params.source === "savedJobs";
-  const shouldShowApplicationDetailsButton =
-    (isOpenedFromAppliedJobs || isOpenedFromFinder || isOpenedFromSavedJobs) &&
-    applyButtonState.isSubmitted;
-  const descriptionBlocks = parseDescriptionBlocks(
-    selectedJob.description || "N/A",
+  const isSaved = useMemo(
+    () => savedJobIds.includes(selectedJob.id),
+    [savedJobIds, selectedJob.id],
+  );
+  const applyButtonState = useMemo(
+    () => getApplyButtonState(selectedJob.id),
+    [getApplyButtonState, selectedJob.id],
+  );
+  const shouldShowApplicationDetailsButton = useMemo(() => {
+    const isOpenedFromFinder = route.params.source === "finder";
+    const isOpenedFromAppliedJobs = route.params.source === "appliedJobs";
+    const isOpenedFromSavedJobs = route.params.source === "savedJobs";
+
+    return (
+      (isOpenedFromAppliedJobs ||
+        isOpenedFromFinder ||
+        isOpenedFromSavedJobs) &&
+      applyButtonState.isSubmitted
+    );
+  }, [applyButtonState.isSubmitted, route.params.source]);
+  const descriptionBlocks = useMemo(
+    () => parseDescriptionBlocks(selectedJob.description || "N/A"),
+    [selectedJob.description],
   );
 
-  const showStatusPrompt = (message: string) => {
+  const showStatusPrompt = useCallback((message: string) => {
     setSavePromptMessage(message);
     setShowSavePrompt(true);
 
@@ -220,9 +292,9 @@ export default function JobDetailsScreen({
       setShowSavePrompt(false);
       promptTimerRef.current = null;
     }, 1800);
-  };
+  }, []);
 
-  const handleSaveToggle = () => {
+  const handleSaveToggle = useCallback(() => {
     if (isSaved) {
       unsaveJob(selectedJob.id);
       showStatusPrompt("Job has been unsaved.");
@@ -231,7 +303,107 @@ export default function JobDetailsScreen({
 
     saveJob(selectedJob.id);
     showStatusPrompt("Job has been saved.");
-  };
+  }, [isSaved, saveJob, selectedJob.id, showStatusPrompt, unsaveJob]);
+
+  const handleApplyOrView = useCallback(() => {
+    if (shouldShowApplicationDetailsButton) {
+      navigation.navigate("ApplicationDetails", {
+        jobId: selectedJob.id,
+      });
+      return;
+    }
+
+    if (applyButtonState.isSubmitted) {
+      return;
+    }
+
+    navigation.navigate("ApplicationForm", {
+      jobId: selectedJob.id,
+      source: "jobDetails",
+    });
+  }, [
+    applyButtonState.isSubmitted,
+    navigation,
+    selectedJob.id,
+    shouldShowApplicationDetailsButton,
+  ]);
+
+  const evaluateBottomState = useCallback(() => {
+    const distanceFromBottom = Math.max(
+      contentHeightRef.current -
+        (scrollOffsetYRef.current + layoutHeightRef.current),
+      0,
+    );
+
+    setIsAtBottom((currentValue) => {
+      const enterBottomThreshold = 40;
+      const exitBottomThreshold = 96;
+      const nextValue = currentValue
+        ? distanceFromBottom <= exitBottomThreshold
+        : distanceFromBottom <= enterBottomThreshold;
+
+      return nextValue;
+    });
+  }, []);
+
+  const handleScroll = useCallback(
+    (event: NativeSyntheticEvent<NativeScrollEvent>) => {
+      scrollOffsetYRef.current = event.nativeEvent.contentOffset.y;
+      evaluateBottomState();
+    },
+    [evaluateBottomState],
+  );
+
+  const handleListLayout = useCallback(
+    (event: LayoutChangeEvent) => {
+      layoutHeightRef.current = event.nativeEvent.layout.height;
+      evaluateBottomState();
+    },
+    [evaluateBottomState],
+  );
+
+  const handleContentSizeChange = useCallback(
+    (_width: number, height: number) => {
+      contentHeightRef.current = height;
+      evaluateBottomState();
+    },
+    [evaluateBottomState],
+  );
+
+  const renderActions = useCallback(
+    () => (
+      <View style={jobDetailsScreenStyles.actionsRow}>
+        <CircularBackButton onPress={() => navigation.goBack()} />
+        <AppButton
+          label={
+            shouldShowApplicationDetailsButton
+              ? "View Application Details"
+              : "Apply Job"
+          }
+          variant={
+            shouldShowApplicationDetailsButton
+              ? "primary"
+              : applyButtonState.variant
+          }
+          disabled={
+            shouldShowApplicationDetailsButton
+              ? false
+              : applyButtonState.disabled
+          }
+          onPress={handleApplyOrView}
+        />
+        <BookmarkButton isSaved={isSaved} onPress={handleSaveToggle} />
+      </View>
+    ),
+    [
+      applyButtonState.disabled,
+      handleApplyOrView,
+      handleSaveToggle,
+      isSaved,
+      navigation,
+      shouldShowApplicationDetailsButton,
+    ],
+  );
 
   return (
     <View style={jobDetailsScreenStyles.container}>
@@ -242,7 +414,17 @@ export default function JobDetailsScreen({
         keyExtractor={(item) => item.id}
         showsVerticalScrollIndicator={false}
         showsHorizontalScrollIndicator={false}
-        contentContainerStyle={jobDetailsScreenStyles.listContainer}
+        onLayout={handleListLayout}
+        onScroll={handleScroll}
+        onScrollEndDrag={evaluateBottomState}
+        onMomentumScrollEnd={evaluateBottomState}
+        onContentSizeChange={handleContentSizeChange}
+        scrollEventThrottle={32}
+        contentContainerStyle={[
+          jobDetailsScreenStyles.listContainer,
+          !showInlineActions &&
+            jobDetailsScreenStyles.listContainerWithStickyPadding,
+        ]}
         renderItem={() => (
           <View>
             <JobInfoCard job={selectedJob} />
@@ -317,51 +499,35 @@ export default function JobDetailsScreen({
               })}
             </View>
 
-            <View style={jobDetailsScreenStyles.actionsRow}>
-              <CircularBackButton onPress={() => navigation.goBack()} />
-              <AppButton
-                label={
-                  shouldShowApplicationDetailsButton
-                    ? "View Application Details"
-                    : "Apply Job"
-                }
-                variant={
-                  shouldShowApplicationDetailsButton
-                    ? "primary"
-                    : applyButtonState.variant
-                }
-                disabled={
-                  shouldShowApplicationDetailsButton
-                    ? false
-                    : applyButtonState.disabled
-                }
-                onPress={() => {
-                  if (shouldShowApplicationDetailsButton) {
-                    navigation.navigate("ApplicationDetails", {
-                      jobId: selectedJob.id,
-                    });
-                    return;
-                  }
-
-                  if (applyButtonState.isSubmitted) {
-                    return;
-                  }
-
-                  navigation.navigate("ApplicationForm", {
-                    jobId: selectedJob.id,
-                    source: "jobDetails",
-                  });
-                }}
-              />
-              <BookmarkButton isSaved={isSaved} onPress={handleSaveToggle} />
-            </View>
+            {showInlineActions ? (
+              <Animated.View
+                style={[
+                  jobDetailsScreenStyles.actionsInlineContainer,
+                  { opacity: inlineOpacity },
+                ]}
+              >
+                {renderActions()}
+              </Animated.View>
+            ) : null}
           </View>
         )}
       />
 
-      <JobSaveStatusPrompt
+      {showStickyActions ? (
+        <Animated.View
+          style={[
+            jobDetailsScreenStyles.actionsStickyContainer,
+            { opacity: stickyOpacity },
+          ]}
+        >
+          {renderActions()}
+        </Animated.View>
+      ) : null}
+
+      <AppPrompt
         visible={showSavePrompt}
         message={savePromptMessage}
+        variant="toast"
       />
     </View>
   );

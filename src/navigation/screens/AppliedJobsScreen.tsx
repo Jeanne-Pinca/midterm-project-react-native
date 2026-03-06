@@ -5,10 +5,13 @@ import { useMemo, useState } from "react";
 import { Text, View } from "react-native";
 
 import AppButton from "../../components/AppButton";
+import AppPrompt from "../../components/AppPrompt";
 import JobInfoCard from "../../components/JobInfoCard";
 import RefreshableList from "../../components/RefreshableList";
+import SearchHelpContent from "../../components/SearchHelpContent";
 import SearchBar from "../../components/SearchBar";
 import { Job, useJobs } from "../../context/JobContext";
+import { filterJobsBySearchQuery } from "../../utils/jobSearch";
 import { RootStackParamList, RootTabParamList } from "../index";
 import { appliedJobsScreenStyles } from "./styles/appliedJobsScreenStyles";
 
@@ -21,39 +24,21 @@ export default function AppliedJobsScreen({
   navigation,
 }: AppliedJobsScreenProps) {
   const [query, setQuery] = useState<string>("");
+  const [showSearchInfoPrompt, setShowSearchInfoPrompt] =
+    useState<boolean>(false);
   const { jobs, submittedJobIds, isLoading, refreshJobs } = useJobs();
 
   const appliedJobs = useMemo(() => {
-    const normalizedQuery = query.trim().toLowerCase();
     const submittedOnly = jobs.filter((job) =>
       submittedJobIds.includes(job.id),
     );
 
-    if (!normalizedQuery) {
-      return submittedOnly;
-    }
-
-    return submittedOnly.filter((job) => {
-      const searchableText = [
-        job.title,
-        job.company,
-        job.mainCategory,
-        job.jobType,
-        job.workModel,
-        job.seniorityLevel,
-        job.salary,
-        job.currency,
-        job.locations.join(" "),
-        job.tags.join(" "),
-        job.description,
-        job.guid,
-      ]
-        .join(" ")
-        .toLowerCase();
-
-      return searchableText.includes(normalizedQuery);
-    });
+    return filterJobsBySearchQuery(submittedOnly, query);
   }, [jobs, submittedJobIds, query]);
+
+  const handleSearchInfoPress = () => {
+    setShowSearchInfoPrompt(true);
+  };
 
   const renderAppliedJob = ({ item }: { item: Job }) => (
     <JobInfoCard
@@ -90,6 +75,7 @@ export default function AppliedJobsScreen({
         onChangeText={setQuery}
         placeholder="Search applied jobs"
         style={appliedJobsScreenStyles.searchInput}
+        onInfoPress={handleSearchInfoPress}
       />
 
       <RefreshableList
@@ -106,6 +92,21 @@ export default function AppliedJobsScreen({
             No applied jobs found.
           </Text>
         }
+      />
+
+      <AppPrompt
+        visible={showSearchInfoPrompt}
+        variant="dialog"
+        title="How search works"
+        message={<SearchHelpContent />}
+        onRequestClose={() => setShowSearchInfoPrompt(false)}
+        actions={[
+          {
+            label: "Okay",
+            role: "primary",
+            onPress: () => setShowSearchInfoPrompt(false),
+          },
+        ]}
       />
     </View>
   );

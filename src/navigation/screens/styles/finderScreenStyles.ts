@@ -4,8 +4,8 @@ export const finderScreenStyles = StyleSheet.create({
   container: {
     flex: 1,
     paddingHorizontal: 16,
-    paddingVertical: 16,
-    backgroundColor: "#fff",
+    paddingTop: 16,
+    backgroundColor: "transparent",
   },
   title: {
     fontSize: 24,
@@ -13,11 +13,6 @@ export const finderScreenStyles = StyleSheet.create({
     marginBottom: 12,
   },
   searchInput: {
-    borderWidth: 1,
-    borderColor: "#d1d5db",
-    borderRadius: 10,
-    paddingHorizontal: 12,
-    paddingVertical: 10,
     marginBottom: 12,
   },
   listContainer: {
