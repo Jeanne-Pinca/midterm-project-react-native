@@ -35,6 +35,11 @@ export const applicationFormScreenStyles = StyleSheet.create({
     justifyContent: "space-between",
     gap: 8,
   },
+  stickyHeaderRightRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+  },
   stickyHeaderTitle: {
     fontSize: 22,
     fontWeight: "700",

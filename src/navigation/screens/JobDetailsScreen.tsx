@@ -16,8 +16,10 @@ import AppPrompt from "../../components/AppPrompt";
 import BookmarkButton from "../../components/BookmarkButton";
 import CircularBackButton from "../../components/CircularBackButton";
 import JobInfoCard from "../../components/JobInfoCard";
+import ThemeModeToggle from "../../components/ThemeModeToggle";
 import { useJobApplicationState } from "../../components/hooks/useJobApplicationState";
 import { useJobs } from "../../context/JobContext";
+import { useTheme } from "../../context/ThemeContext";
 import { RootStackParamList } from "../index";
 import { jobDetailsScreenStyles } from "./styles/jobDetailsScreenStyles";
 
@@ -175,6 +177,7 @@ export default function JobDetailsScreen({
   navigation,
   route,
 }: JobDetailsScreenProps) {
+  const { isDarkMode, theme } = useTheme();
   const [showSavePrompt, setShowSavePrompt] = useState<boolean>(false);
   const [isAtBottom, setIsAtBottom] = useState<boolean>(false);
   const [showStickyActions, setShowStickyActions] = useState<boolean>(true);
@@ -194,6 +197,24 @@ export default function JobDetailsScreen({
     () => jobs.find((job) => job.id === route.params.jobId),
     [jobs, route.params.jobId],
   );
+
+  const handleGoBack = useCallback(() => {
+    if (navigation.canGoBack()) {
+      navigation.goBack();
+      return;
+    }
+
+    const fallbackTabBySource = {
+      finder: "Finder",
+      savedJobs: "SavedJobs",
+      appliedJobs: "AppliedJobs",
+    } as const;
+
+    const fallbackScreen =
+      fallbackTabBySource[route.params.source ?? "finder"] || "Finder";
+
+    navigation.navigate("MainTabs", { screen: fallbackScreen });
+  }, [navigation, route.params.source]);
 
   useEffect(() => {
     return () => {
@@ -246,11 +267,21 @@ export default function JobDetailsScreen({
   if (!selectedJob) {
     return (
       <View style={jobDetailsScreenStyles.container}>
-        <Text style={jobDetailsScreenStyles.title}>Job Details</Text>
+        <View style={jobDetailsScreenStyles.headerRow}>
+          <Text
+            style={[
+              jobDetailsScreenStyles.title,
+              { color: theme.colors.textPrimary },
+            ]}
+          >
+            Job Details
+          </Text>
+          <ThemeModeToggle />
+        </View>
         <Text style={jobDetailsScreenStyles.errorText}>
           Selected job was not found.
         </Text>
-        <AppButton label="Back" onPress={() => navigation.goBack()} />
+        <AppButton label="Back" onPress={handleGoBack} />
       </View>
     );
   }
@@ -373,7 +404,7 @@ export default function JobDetailsScreen({
   const renderActions = useCallback(
     () => (
       <View style={jobDetailsScreenStyles.actionsRow}>
-        <CircularBackButton onPress={() => navigation.goBack()} />
+        <CircularBackButton onPress={handleGoBack} />
         <AppButton
           label={
             shouldShowApplicationDetailsButton
@@ -407,7 +438,17 @@ export default function JobDetailsScreen({
 
   return (
     <View style={jobDetailsScreenStyles.container}>
-      <Text style={jobDetailsScreenStyles.title}>Job Details</Text>
+      <View style={jobDetailsScreenStyles.headerRow}>
+        <Text
+          style={[
+            jobDetailsScreenStyles.title,
+            { color: theme.colors.textPrimary },
+          ]}
+        >
+          Job Details
+        </Text>
+        <ThemeModeToggle />
+      </View>
 
       <FlatList
         data={[selectedJob]}
@@ -429,7 +470,15 @@ export default function JobDetailsScreen({
           <View>
             <JobInfoCard job={selectedJob} />
 
-            <View style={jobDetailsScreenStyles.descriptionBox}>
+            <View
+              style={[
+                jobDetailsScreenStyles.descriptionBox,
+                {
+                  borderColor: theme.colors.border,
+                  backgroundColor: isDarkMode ? "#1f2937" : "#fff",
+                },
+              ]}
+            >
               {descriptionBlocks.map((block, index) => {
                 if (block.type === "heading") {
                   const headingIndex =
@@ -447,7 +496,10 @@ export default function JobDetailsScreen({
                       ]}
                     >
                       <View
-                        style={jobDetailsScreenStyles.descriptionSectionLine}
+                        style={[
+                          jobDetailsScreenStyles.descriptionSectionLine,
+                          { backgroundColor: theme.colors.border },
+                        ]}
                       />
 
                       <View
@@ -456,17 +508,23 @@ export default function JobDetailsScreen({
                         <MaterialCommunityIcons
                           name={getHeadingIconName(block.content)}
                           size={18}
-                          color="#4c1d95"
+                          color={isDarkMode ? "#c4b5fd" : "#4c1d95"}
                         />
                         <Text
-                          style={jobDetailsScreenStyles.descriptionSectionTitle}
+                          style={[
+                            jobDetailsScreenStyles.descriptionSectionTitle,
+                            { color: isDarkMode ? "#ddd6fe" : "#2e1065" },
+                          ]}
                         >
                           {toTitleCase(block.content)}
                         </Text>
                       </View>
 
                       <View
-                        style={jobDetailsScreenStyles.descriptionSectionLine}
+                        style={[
+                          jobDetailsScreenStyles.descriptionSectionLine,
+                          { backgroundColor: theme.colors.border },
+                        ]}
                       />
                     </View>
                   );
@@ -478,10 +536,20 @@ export default function JobDetailsScreen({
                       key={`desc-bullet-${index}`}
                       style={jobDetailsScreenStyles.descriptionBulletRow}
                     >
-                      <Text style={jobDetailsScreenStyles.descriptionBulletDot}>
+                      <Text
+                        style={[
+                          jobDetailsScreenStyles.descriptionBulletDot,
+                          { color: theme.colors.border },
+                        ]}
+                      >
                         •
                       </Text>
-                      <Text style={jobDetailsScreenStyles.descriptionText}>
+                      <Text
+                        style={[
+                          jobDetailsScreenStyles.descriptionText,
+                          { color: theme.colors.textSecondary },
+                        ]}
+                      >
                         {block.content}
                       </Text>
                     </View>
@@ -491,7 +559,10 @@ export default function JobDetailsScreen({
                 return (
                   <Text
                     key={`desc-text-${index}`}
-                    style={jobDetailsScreenStyles.descriptionText}
+                    style={[
+                      jobDetailsScreenStyles.descriptionText,
+                      { color: theme.colors.textSecondary },
+                    ]}
                   >
                     {block.content}
                   </Text>
@@ -503,6 +574,10 @@ export default function JobDetailsScreen({
               <Animated.View
                 style={[
                   jobDetailsScreenStyles.actionsInlineContainer,
+                  {
+                    borderColor: theme.colors.border,
+                    backgroundColor: theme.colors.surface,
+                  },
                   { opacity: inlineOpacity },
                 ]}
               >
@@ -517,6 +592,10 @@ export default function JobDetailsScreen({
         <Animated.View
           style={[
             jobDetailsScreenStyles.actionsStickyContainer,
+            {
+              borderColor: theme.colors.border,
+              backgroundColor: theme.colors.surface,
+            },
             { opacity: stickyOpacity },
           ]}
         >

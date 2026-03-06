@@ -7,6 +7,8 @@ import {
     ViewStyle,
 } from "react-native";
 
+import { useTheme } from "../context/ThemeContext";
+
 type SearchBarProps = {
   value: string;
   onChangeText: (text: string) => void;
@@ -22,13 +24,25 @@ export default function SearchBar({
   style,
   onInfoPress,
 }: SearchBarProps) {
+  const { isDarkMode, theme } = useTheme();
+
   return (
-    <View style={[styles.container, style]}>
+    <View
+      style={[
+        styles.container,
+        {
+          borderColor: theme.colors.border,
+          backgroundColor: isDarkMode ? "#1f2937" : "#ffffff",
+        },
+        style,
+      ]}
+    >
       <TextInput
         value={value}
         onChangeText={onChangeText}
         placeholder={placeholder}
-        style={styles.input}
+        placeholderTextColor={theme.colors.textMuted}
+        style={[styles.input, { color: theme.colors.textPrimary }]}
       />
 
       {onInfoPress ? (
@@ -42,7 +56,7 @@ export default function SearchBar({
           <MaterialCommunityIcons
             name="information-outline"
             size={20}
-            color="#6b7280"
+            color={theme.colors.textMuted}
           />
         </Pressable>
       ) : null}

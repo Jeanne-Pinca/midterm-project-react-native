@@ -3,10 +3,10 @@ import { CompositeScreenProps } from "@react-navigation/native";
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
-    ActivityIndicator,
-    ListRenderItemInfo,
-    Text,
-    View,
+  ActivityIndicator,
+  ListRenderItemInfo,
+  Text,
+  View,
 } from "react-native";
 
 import AppButton from "../../components/AppButton";
@@ -16,7 +16,9 @@ import JobInfoCard from "../../components/JobInfoCard";
 import RefreshableList from "../../components/RefreshableList";
 import SearchBar from "../../components/SearchBar";
 import SearchHelpContent from "../../components/SearchHelpContent";
+import ThemeModeToggle from "../../components/ThemeModeToggle";
 import { Job, useJobs } from "../../context/JobContext";
+import { useTheme } from "../../context/ThemeContext";
 import { filterJobsBySearchQuery } from "../../utils/jobSearch";
 import { RootStackParamList, RootTabParamList } from "../index";
 import { finderScreenStyles } from "./styles/finderScreenStyles";
@@ -27,6 +29,7 @@ type FinderScreenProps = CompositeScreenProps<
 >;
 
 export default function FinderScreen({ navigation }: FinderScreenProps) {
+  const { theme } = useTheme();
   const [query, setQuery] = useState<string>("");
   const [showSavePrompt, setShowSavePrompt] = useState<boolean>(false);
   const [showSearchInfoPrompt, setShowSearchInfoPrompt] =
@@ -104,27 +107,24 @@ export default function FinderScreen({ navigation }: FinderScreenProps) {
     return filterJobsBySearchQuery(jobs, query);
   }, [jobs, query]);
 
-  const renderJob = useCallback(
-    ({ item }: ListRenderItemInfo<Job>) => (
-      <JobInfoCard
-        job={item}
-        footer={
-          <View style={finderScreenStyles.buttonRow}>
-            <BookmarkButton
-              isSaved={savedJobIds.includes(item.id)}
-              onPress={() =>
-                handleSaveJob(item.id, savedJobIds.includes(item.id))
-              }
-            />
-            <AppButton
-              label="Details"
-              onPress={() => handleOpenDetails(item.id)}
-            />
-          </View>
-        }
-      />
+  const renderFooter = useCallback(
+    (job: Job) => (
+      <View style={finderScreenStyles.buttonRow}>
+        <BookmarkButton
+          isSaved={savedJobIds.includes(job.id)}
+          onPress={() => handleSaveJob(job.id, savedJobIds.includes(job.id))}
+        />
+        <AppButton label="Details" onPress={() => handleOpenDetails(job.id)} />
+      </View>
     ),
     [handleOpenDetails, handleSaveJob, savedJobIds],
+  );
+
+  const renderJob = useCallback(
+    ({ item }: ListRenderItemInfo<Job>) => (
+      <JobInfoCard job={item} footer={renderFooter} />
+    ),
+    [renderFooter],
   );
 
   const keyExtractor = useCallback((item: Job) => item.id, []);
@@ -139,7 +139,17 @@ export default function FinderScreen({ navigation }: FinderScreenProps) {
 
   return (
     <View style={finderScreenStyles.container}>
-      <Text style={finderScreenStyles.title}>Job Finder</Text>
+      <View style={finderScreenStyles.headerRow}>
+        <Text
+          style={[
+            finderScreenStyles.title,
+            { color: theme.colors.textPrimary },
+          ]}
+        >
+          Job Finder
+        </Text>
+        <ThemeModeToggle />
+      </View>
 
       <SearchBar
         value={query}
@@ -150,7 +160,7 @@ export default function FinderScreen({ navigation }: FinderScreenProps) {
       />
 
       {showInitialLoading ? (
-        <ActivityIndicator size="large" />
+        <ActivityIndicator size="large" color={theme.colors.textMuted} />
       ) : showErrorState ? (
         <Text style={finderScreenStyles.errorText}>{error}</Text>
       ) : (
@@ -168,7 +178,14 @@ export default function FinderScreen({ navigation }: FinderScreenProps) {
           removeClippedSubviews
           contentContainerStyle={finderScreenStyles.listContainer}
           ListEmptyComponent={
-            <Text style={finderScreenStyles.emptyText}>No jobs found.</Text>
+            <Text
+              style={[
+                finderScreenStyles.emptyText,
+                { color: theme.colors.textMuted },
+              ]}
+            >
+              No jobs found.
+            </Text>
           }
         />
       )}

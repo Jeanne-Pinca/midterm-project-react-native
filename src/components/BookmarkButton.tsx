@@ -1,5 +1,11 @@
 import { MaterialCommunityIcons } from "@expo/vector-icons";
-import { Pressable, StyleSheet } from "react-native";
+import { Pressable } from "react-native";
+
+import { useTheme } from "../context/ThemeContext";
+import {
+  bookmarkButtonIconSize,
+  bookmarkButtonStyles,
+} from "./styles/bookmarkButtonStyles";
 
 type BookmarkButtonProps = {
   isSaved: boolean;
@@ -10,25 +16,27 @@ export default function BookmarkButton({
   isSaved,
   onPress,
 }: BookmarkButtonProps) {
+  const { isDarkMode, theme } = useTheme();
+
   return (
-    <Pressable style={styles.bookmarkButton} onPress={onPress}>
+    <Pressable
+      style={[
+        bookmarkButtonStyles.button,
+        {
+          borderColor: theme.colors.border,
+          backgroundColor: isDarkMode ? "#1f2937" : "#fff",
+        },
+      ]}
+      onPress={onPress}
+    >
       <MaterialCommunityIcons
         name={isSaved ? "bookmark" : "bookmark-outline"}
-        size={24}
-        color="#111827"
+        size={bookmarkButtonIconSize}
+        style={[
+          bookmarkButtonStyles.icon,
+          { color: isSaved ? "#ffc74d" : theme.colors.textSecondary },
+        ]}
       />
     </Pressable>
   );
 }
-
-const styles = StyleSheet.create({
-  bookmarkButton: {
-    padding: 8,
-    justifyContent: "center",
-    alignItems: "center",
-    borderWidth: 1,
-    borderColor: "#e5e7eb",
-    backgroundColor: "#fff",
-    borderRadius: 10,
-  },
-});

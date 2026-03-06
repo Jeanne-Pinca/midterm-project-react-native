@@ -7,10 +7,17 @@ export const appliedJobsScreenStyles = StyleSheet.create({
     paddingTop: 16,
     backgroundColor: "transparent",
   },
+  headerRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    gap: 8,
+    marginBottom: 12,
+  },
   title: {
     fontSize: 24,
     fontWeight: "700",
-    marginBottom: 12,
+    flexShrink: 1,
   },
   searchInput: {
     marginBottom: 12,
