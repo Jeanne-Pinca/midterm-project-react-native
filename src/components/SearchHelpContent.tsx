@@ -4,15 +4,11 @@ export default function SearchHelpContent() {
   return (
     <Text style={styles.message}>
       You can search by using keywords, or using filters: (
-      <Text style={styles.bold}>category, location, job type</Text>)
-      {"\n\n"}
+      <Text style={styles.bold}>category, location, job type</Text>){"\n\n"}
       <Text style={styles.bold}>Example:</Text>
-      {"\n"}
-      • category : design
-      {"\n"}
-      • location : seoul
-      {"\n"}
-      • type : Internship
+      {"\n"}• category : design
+      {"\n"}• location : seoul
+      {"\n"}• type : Internship
     </Text>
   );
 }
